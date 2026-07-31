@@ -65,6 +65,7 @@ import {
 } from '../availability/policyHelpers.js';
 import { coreEvents } from '../utils/events.js';
 import type { AgentLoopContext } from '../config/agent-loop-context.js';
+import { readCliEnvAlias } from '../utils/cliEnvAliases.js';
 
 export enum StreamEventType {
   /** A regular content chunk from the API. */
@@ -967,7 +968,9 @@ export class GeminiChat {
       retryFetchErrors: this.context.config.getRetryFetchErrors(),
       signal: abortSignal,
       maxAttempts:
-        availabilityMaxAttempts ?? this.context.config.getMaxAttempts(),
+        readCliEnvAlias('FAST_MODE') === '1'
+          ? 1
+          : (availabilityMaxAttempts ?? this.context.config.getMaxAttempts()),
       getAvailabilityContext,
       onRetry: (attempt, error, delayMs) => {
         coreEvents.emitRetryAttempt({

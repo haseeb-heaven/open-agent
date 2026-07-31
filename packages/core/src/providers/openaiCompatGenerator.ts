@@ -33,6 +33,7 @@ import {
   type ProviderDefinition,
 } from './providers.js';
 import { recordProviderUsage } from './usageStore.js';
+import { readCliEnvAlias } from '../utils/cliEnvAliases.js';
 
 interface OpenAIMessage {
   role: 'system' | 'user' | 'assistant' | 'tool';
@@ -67,6 +68,10 @@ export interface OpenAICompatOptions {
   env?: NodeJS.ProcessEnv;
   fetchImpl?: typeof fetch;
 }
+
+/** Fast mode favors first response latency over long-form reasoning. */
+const FAST_MODE_MAX_TOKENS = 1024;
+const FAST_MODE_REQUEST_TIMEOUT_MS = 3000;
 
 function contentsToList(
   contents: GenerateContentParameters['contents'],
@@ -283,6 +288,8 @@ export class OpenAICompatContentGenerator implements ContentGenerator {
   private readonly apiKey?: string;
   private readonly temperature?: number;
   private readonly maxTokens?: number;
+  private readonly fastMode: boolean;
+  private readonly fastModeRequestTimeoutMs: number;
 
   constructor(options: OpenAICompatOptions) {
     this.provider = options.provider;
@@ -304,6 +311,14 @@ export class OpenAICompatContentGenerator implements ContentGenerator {
       options.apiKey ?? providerApiKey(options.provider, options.env);
     this.temperature = options.temperature;
     this.maxTokens = options.maxTokens;
+    this.fastMode = readCliEnvAlias('FAST_MODE', options.env) === '1';
+    const configuredTimeout = Number(
+      options.env?.['OPENAGENT_CLI_FAST_TIMEOUT_MS'],
+    );
+    this.fastModeRequestTimeoutMs =
+      Number.isFinite(configuredTimeout) && configuredTimeout > 0
+        ? configuredTimeout
+        : FAST_MODE_REQUEST_TIMEOUT_MS;
     this.fetchImpl = options.fetchImpl ?? fetch;
   }
 
@@ -332,7 +347,15 @@ export class OpenAICompatContentGenerator implements ContentGenerator {
     request: GenerateContentParameters,
     stream: boolean,
   ): Promise<Response> {
-    const signal = request.config?.abortSignal;
+    const callerSignal = request.config?.abortSignal;
+    const timeoutSignal = this.fastMode
+      ? AbortSignal.timeout(this.fastModeRequestTimeoutMs)
+      : undefined;
+    const signal = timeoutSignal
+      ? callerSignal
+        ? AbortSignal.any([callerSignal, timeoutSignal])
+        : timeoutSignal
+      : callerSignal;
     const attempt = (withTools: boolean) =>
       this.fetchImpl(`${this.apiBase}/chat/completions`, {
         method: 'POST',
@@ -340,7 +363,18 @@ export class OpenAICompatContentGenerator implements ContentGenerator {
         body: JSON.stringify(this.buildBody(request, stream, withTools)),
         ...(signal ? { signal } : {}),
       });
-    let resp = await attempt(!this.toolsUnsupported);
+    let resp: Response;
+    try {
+      resp = await attempt(!this.toolsUnsupported);
+    } catch (error) {
+      if (timeoutSignal?.aborted && !callerSignal?.aborted) {
+        throw new Error(
+          `${this.provider.id} request deadline exceeded (provider returned error)`,
+          { cause: error },
+        );
+      }
+      throw error;
+    }
     if (resp.ok) return resp;
     let detail = await resp.text().catch(() => '');
     if (
@@ -363,15 +397,22 @@ export class OpenAICompatContentGenerator implements ContentGenerator {
     withTools = true,
   ): Record<string, unknown> {
     const tools = withTools ? toOpenAITools(request) : undefined;
+    const configuredMaxTokens =
+      request.config?.maxOutputTokens ?? this.maxTokens;
+    const maxTokens = this.fastMode
+      ? Math.min(
+          configuredMaxTokens ?? FAST_MODE_MAX_TOKENS,
+          FAST_MODE_MAX_TOKENS,
+        )
+      : configuredMaxTokens;
+
     return {
       model: this.model,
       messages: toOpenAIMessages(request),
       stream,
       ...(stream ? { stream_options: { include_usage: true } } : {}),
       temperature: request.config?.temperature ?? this.temperature ?? 0.1,
-      ...((request.config?.maxOutputTokens ?? this.maxTokens)
-        ? { max_tokens: request.config?.maxOutputTokens ?? this.maxTokens }
-        : {}),
+      ...(maxTokens ? { max_tokens: maxTokens } : {}),
       ...(tools ? { tools } : {}),
     };
   }

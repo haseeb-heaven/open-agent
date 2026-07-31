@@ -36,6 +36,7 @@ import {
   type FallbackCandidate,
 } from './freeCatalog.js';
 import type { ModelRegistry } from './modelRegistry.js';
+import { readCliEnvAlias } from '../utils/cliEnvAliases.js';
 
 function generatorForCandidate(
   candidate: FallbackCandidate,
@@ -95,25 +96,62 @@ export class FreeFallbackContentGenerator implements ContentGenerator {
           message: summarizeFreeFallbackError(primaryError),
         },
       ];
-      for (const candidate of freeFallbackCandidates(this.activeModelId, {
+      const candidates = freeFallbackCandidates(this.activeModelId, {
         env: this.env,
         registry: this.options.registry,
         catalog: this.options.catalog,
-      })) {
-        const generator = generatorForCandidate(candidate, this.env);
-        if (!generator) continue;
-        tried.push(candidate.model);
-        try {
-          const result = await attempt(generator);
-          this.active = generator;
-          return result;
-        } catch (candidateError) {
-          // Local servers that are down or further rate limits: move on.
-          lastError = candidateError;
-          failures.push({
-            model: candidate.model,
-            message: summarizeFreeFallbackError(candidateError),
-          });
+      });
+      const fastMode = readCliEnvAlias('FAST_MODE', this.env) === '1';
+
+      if (fastMode) {
+        // Keep the latency budget bounded: one alternate request after the
+        // primary is enough to recover from a stalled endpoint without
+        // turning fast mode into another serial fallback chain.
+        const fastCandidates = candidates.slice(0, 1);
+        const attempts = fastCandidates.map((candidate) => {
+          const generator = generatorForCandidate(candidate, this.env);
+          if (!generator)
+            return Promise.reject(new Error('unavailable fallback'));
+          tried.push(candidate.model);
+          return attempt(generator)
+            .then((result) => {
+              this.active = generator;
+              return result;
+            })
+            .catch((candidateError) => {
+              failures.push({
+                model: candidate.model,
+                message: summarizeFreeFallbackError(candidateError),
+              });
+              throw candidateError;
+            });
+        });
+
+        if (attempts.length > 0) {
+          try {
+            return await Promise.any(attempts);
+          } catch {
+            // Fall through to the same consolidated error used by normal mode.
+            lastError = failures.at(-1)?.message ?? lastError;
+          }
+        }
+      } else {
+        for (const candidate of candidates) {
+          const generator = generatorForCandidate(candidate, this.env);
+          if (!generator) continue;
+          tried.push(candidate.model);
+          try {
+            const result = await attempt(generator);
+            this.active = generator;
+            return result;
+          } catch (candidateError) {
+            // Local servers that are down or further rate limits: move on.
+            lastError = candidateError;
+            failures.push({
+              model: candidate.model,
+              message: summarizeFreeFallbackError(candidateError),
+            });
+          }
         }
       }
       throw new FreeModelsExhaustedError(

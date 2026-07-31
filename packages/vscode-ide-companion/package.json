@@ -2,7 +2,7 @@
   "name": "open-agent-vscode-ide-companion",
   "displayName": "OpenAgent Companion",
   "description": "Enable OpenAgent with direct access to your IDE workspace.",
-  "version": "4.1.2",
+  "version": "4.1.3",
   "publisher": "google",
   "icon": "assets/icon.png",
   "repository": {

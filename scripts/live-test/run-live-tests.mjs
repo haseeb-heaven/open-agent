@@ -124,9 +124,7 @@ if (models.length === 0 || prompts.length === 0) {
   process.exit(1);
 }
 
-const requestedConcurrency = Number(
-  process.env['LIVE_TEST_CONCURRENCY'] || 4,
-);
+const requestedConcurrency = Number(process.env['LIVE_TEST_CONCURRENCY'] || 4);
 const concurrency = Math.max(
   1,
   Math.min(
@@ -261,7 +259,9 @@ function runOnce(model, prompt) {
 async function runOne(model, prompt) {
   let report = await runOnce(model, prompt);
   let attempts = 1;
-  if (report.timedOut) {
+  // Fast mode is explicitly a latency-budget experiment. Retrying a timed-out
+  // child would double the budget and hide whether failover is responsive.
+  if (report.timedOut && process.env['OPENAGENT_CLI_FAST_MODE'] !== '1') {
     const retryReport = await runOnce(model, prompt);
     attempts = 2;
     report = retryReport;

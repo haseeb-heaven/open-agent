@@ -147,6 +147,58 @@ describe('toOpenAITools', () => {
 });
 
 describe('OpenAICompatContentGenerator', () => {
+  it('turns a fast-mode request deadline into a free-routing failure', async () => {
+    const fetchImpl = vi.fn(
+      (_url: RequestInfo | URL, init?: RequestInit) =>
+        new Promise<Response>((_resolve, reject) => {
+          init?.signal?.addEventListener('abort', () =>
+            reject(new Error('aborted')),
+          );
+        }),
+    );
+    const generator = new OpenAICompatContentGenerator({
+      modelId: 'ollama/llama3.1:8b',
+      provider: getProvider('ollama')!,
+      env: {
+        OPENAGENT_CLI_FAST_MODE: '1',
+        OPENAGENT_CLI_FAST_TIMEOUT_MS: '5',
+      },
+      fetchImpl,
+    });
+
+    await expect(
+      generator.generateContent(REQUEST, 'prompt-id'),
+    ).rejects.toThrow(/request deadline exceeded.*provider returned error/);
+  });
+
+  it('caps completion length in fast mode to reduce response latency', async () => {
+    const fetchImpl = vi.fn().mockResolvedValueOnce(
+      jsonResponse({
+        choices: [{ message: { content: 'fast' }, finish_reason: 'stop' }],
+      }),
+    );
+    const generator = new OpenAICompatContentGenerator({
+      modelId: 'ollama/llama3.1:8b',
+      provider: getProvider('ollama')!,
+      maxTokens: 4096,
+      env: { OPENAGENT_CLI_FAST_MODE: '1' },
+      fetchImpl,
+    });
+
+    await generator.generateContent(
+      {
+        ...REQUEST,
+        config: { ...REQUEST.config, maxOutputTokens: 4096 },
+      },
+      'prompt-id',
+    );
+
+    const body = JSON.parse(
+      (fetchImpl.mock.calls[0][1] as { body: string }).body,
+    );
+    expect(body.max_tokens).toBe(1024);
+  });
+
   it('routes generateContent through the provider base URL', async () => {
     const fetchImpl = vi.fn().mockResolvedValueOnce(
       jsonResponse({

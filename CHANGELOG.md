@@ -1,10 +1,21 @@
 ## Unreleased
 
+## v4.1.3 (2026-08-01) — Fast provider failover and agent response latency
+
+- perf(providers): fast mode now bounds OpenAI-compatible requests to 3 seconds
+  and races one free-model fallback candidate instead of waiting through a
+  serial fallback chain on stalled endpoints
+- perf(providers): add opt-in `OPENAGENT_CLI_FAST_MODE=1`, capping compatible
+  model completions at 1024 tokens and limiting fast-mode retries
+- perf(core): explicit Gemini model selections bypass the auto-model classifier;
+  model changes during an active sequence still re-route normally
+- perf(core): fast mode skips the optional next-speaker follow-up request
 - perf(core): cache the resolved model registry and derived free catalog during
-  provider setup, avoiding repeated TOML parsing and catalog allocations on
-  every agent turn
-- test(live): run the model matrix with bounded concurrency and report matrix
-  wall-clock time plus p50/p95 per-run latency for speed comparisons
+  provider setup to avoid repeated TOML parsing and catalog allocations
+- test(live): run model matrices with bounded concurrency and report wall-clock,
+  p50/p95 latency, target misses, and per-model results
+- test: add provider timeout, fast-mode, and full model registry coverage
+
 - fix(cli): Slack marketplace extension install no longer fails with
   "Configuration file not found" — OpenAgent now recognizes Claude's
   `.claude-plugin/plugin.json` manifest format (in addition to

@@ -67,7 +67,11 @@ import {
   applyModelSelection,
   createAvailabilityContextProvider,
 } from '../availability/policyHelpers.js';
-import { getDisplayString, resolveModel } from '../config/models.js';
+import {
+  getDisplayString,
+  isAutoModel,
+  resolveModel,
+} from '../config/models.js';
 import { partToString } from '../utils/partUtils.js';
 import { randomUUID } from 'node:crypto';
 import {
@@ -76,6 +80,7 @@ import {
   type ApprovalModeChangedPayload,
 } from '../utils/events.js';
 import { initializeContextManager } from '../context/initializer.js';
+import { readCliEnvAlias } from '../utils/cliEnvAliases.js';
 
 const MAX_TURNS = 100;
 
@@ -102,6 +107,7 @@ export class GeminiClient {
   private contextManager?: ContextManager;
   private lastPromptId: string;
   private currentSequenceModel: string | null = null;
+  private modelChangedDuringSequence = false;
   private lastSentIdeContext: IdeContext | undefined;
   private forceFullIdeContext = true;
 
@@ -134,6 +140,7 @@ export class GeminiClient {
   }
 
   private handleModelChanged = () => {
+    this.modelChangedDuringSequence = this.currentSequenceModel !== null;
     this.currentSequenceModel = null;
   };
 
@@ -772,12 +779,25 @@ export class GeminiClient {
 
     let modelToUse: string;
 
-    // Determine Model (Stickiness vs. Routing)
+    // Determine Model (Stickiness vs. Routing). Explicit model selections must
+    // not pay for the classifier/router call; routing is only useful for auto.
     // When the user explicitly selected a multi-provider model via /model
     // (OpenRouter, OpenAI, Groq, …), always honor config.getModel() so sticky
     // sequence state or Gemini auto-routing cannot keep serving Gemini.
     const sessionModel = this.config.getModel();
-    if (isMultiProviderModel(sessionModel)) {
+    const explicitModel =
+      sessionModel &&
+      !isAutoModel(sessionModel) &&
+      (sessionModel.startsWith('gemini') ||
+        sessionModel.includes('/gemini') ||
+        sessionModel === 'pro' ||
+        sessionModel === 'flash' ||
+        sessionModel === 'flash-lite');
+    const modelChangedDuringSequence = this.modelChangedDuringSequence;
+    if (
+      isMultiProviderModel(sessionModel) ||
+      (explicitModel && !modelChangedDuringSequence)
+    ) {
       modelToUse = sessionModel;
       this.currentSequenceModel = null;
     } else if (this.currentSequenceModel) {
@@ -809,6 +829,7 @@ export class GeminiClient {
       yield { type: GeminiEventType.ModelInfo, value: modelToUse };
     }
     this.currentSequenceModel = modelToUse;
+    this.modelChangedDuringSequence = false;
 
     // Update tools with the final modelId to ensure model-dependent descriptions are used.
     await this.setTools(modelToUse);
@@ -885,7 +906,13 @@ export class GeminiClient {
       }
     }
 
-    if (!turn.pendingToolCalls.length && signal && !signal.aborted) {
+    const fastMode = readCliEnvAlias('FAST_MODE') === '1';
+    if (
+      !fastMode &&
+      !turn.pendingToolCalls.length &&
+      signal &&
+      !signal.aborted
+    ) {
       if (
         !this.config.getQuotaErrorOccurred() &&
         !this.config.getSkipNextSpeakerCheck()
