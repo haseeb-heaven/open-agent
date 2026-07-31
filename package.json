@@ -1,6 +1,6 @@
 {
   "name": "@haseeb_heaven/open-agent",
-  "version": "4.1.3",
+  "version": "4.1.4",
   "engines": {
     "node": ">=22.0.0"
   },
@@ -18,7 +18,7 @@
     "url": "git+https://github.com/haseeb-heaven/open-agent.git"
   },
   "config": {
-    "sandboxImageUri": "ghcr.io/haseeb-heaven/open-agent-sandbox:4.1.3"
+    "sandboxImageUri": "ghcr.io/haseeb-heaven/open-agent-sandbox:4.1.4"
   },
   "scripts": {
     "start": "cross-env NODE_ENV=development node scripts/start.js",

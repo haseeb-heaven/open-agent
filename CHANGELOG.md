@@ -1,5 +1,10 @@
 ## Unreleased
 
+## v4.1.4 (2026-08-01) — Clean release bundle versioning
+
+- fix(release): rebuild the npm CLI bundle from a clean output directory so
+  stale content-hashed chunks cannot report an older CLI version
+
 ## v4.1.3 (2026-08-01) — Fast provider failover and agent response latency
 
 - perf(providers): fast mode now bounds OpenAI-compatible requests to 3 seconds
