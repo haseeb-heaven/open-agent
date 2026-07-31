@@ -13,10 +13,24 @@
 
 import { getProvider, isProviderAvailable, splitModelId } from './providers.js';
 import { readCliEnvAlias } from '../utils/cliEnvAliases.js';
-import { ModelRegistry, getModelRegistry } from './modelRegistry.js';
+import { getModelRegistry } from './modelRegistry.js';
+import type { ModelRegistry } from './modelRegistry.js';
 import { OpenAICompatContentGenerator } from './openaiCompatGenerator.js';
 import { FreeLLMCatalog, matchCatalogEntry } from './freeCatalog.js';
 import { FreeFallbackContentGenerator } from './freeFallback.js';
+
+// Model setup happens for every chat/agent turn. Keep the derived catalog
+// alongside the already-cached registry so repeated turns do not reparse TOML
+// or allocate the same catalog entries.
+const catalogCache = new WeakMap<ModelRegistry, FreeLLMCatalog>();
+
+function getCachedCatalog(registry: ModelRegistry): FreeLLMCatalog {
+  const cached = catalogCache.get(registry);
+  if (cached) return cached;
+  const catalog = FreeLLMCatalog.load(registry);
+  catalogCache.set(registry, catalog);
+  return catalog;
+}
 
 /** True when `modelId` should be routed by the multi-provider layer. */
 export function isMultiProviderModel(
@@ -49,7 +63,7 @@ export function createMultiProviderGenerator(
   env: NodeJS.ProcessEnv = process.env,
   registry?: ModelRegistry,
 ): OpenAICompatContentGenerator | FreeFallbackContentGenerator | undefined {
-  const reg = registry ?? ModelRegistry.load();
+  const reg = registry ?? getModelRegistry();
   let id = (modelId ?? '').trim();
   let cfg = undefined;
 
@@ -93,7 +107,7 @@ export function createMultiProviderGenerator(
   // through the catalog instead of killing the request.
   const freeSession = readCliEnvAlias('FREE', env) === '1';
   const inCatalog =
-    matchCatalogEntry(id, FreeLLMCatalog.load(reg), reg) !== undefined;
+    matchCatalogEntry(id, getCachedCatalog(reg), reg) !== undefined;
   if (freeSession || inCatalog) {
     return new FreeFallbackContentGenerator(generator, env, { registry: reg });
   }

@@ -1,5 +1,10 @@
 ## Unreleased
 
+- perf(core): cache the resolved model registry and derived free catalog during
+  provider setup, avoiding repeated TOML parsing and catalog allocations on
+  every agent turn
+- test(live): run the model matrix with bounded concurrency and report matrix
+  wall-clock time plus p50/p95 per-run latency for speed comparisons
 - fix(cli): Slack marketplace extension install no longer fails with
   "Configuration file not found" — OpenAgent now recognizes Claude's
   `.claude-plugin/plugin.json` manifest format (in addition to

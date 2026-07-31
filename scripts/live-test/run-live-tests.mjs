@@ -23,6 +23,8 @@
  *   LIVE_TEST_APPROVAL_MODE  (default: yolo)
  *   LIVE_TEST_OUTPUT_FORMAT  (default: json)
  *   LIVE_TEST_TIMEOUT_MS     (default: 120000)
+ *   LIVE_TEST_CONCURRENCY     (default: 4) bounded number of model processes
+ *   LIVE_TEST_TARGET_MS       (default: 5000) latency budget reported per run
  *   LIVE_TEST_MODELS         optional comma list of registry keys (from
  *                            configs/models.toml) to restrict the run to
  *                            (default: every model in the registry)
@@ -84,6 +86,7 @@ const runCwd = resolve(process.env['LIVE_TEST_CWD'] || mediaDir);
 const approvalMode = process.env['LIVE_TEST_APPROVAL_MODE'] || 'yolo';
 const outputFormat = process.env['LIVE_TEST_OUTPUT_FORMAT'] || 'json';
 const timeoutMs = Number(process.env['LIVE_TEST_TIMEOUT_MS'] || 120_000);
+const targetMs = Number(process.env['LIVE_TEST_TARGET_MS'] || 5_000);
 
 if (!existsSync(cliEntry)) {
   console.error(
@@ -120,6 +123,17 @@ if (models.length === 0 || prompts.length === 0) {
   );
   process.exit(1);
 }
+
+const requestedConcurrency = Number(
+  process.env['LIVE_TEST_CONCURRENCY'] || 4,
+);
+const concurrency = Math.max(
+  1,
+  Math.min(
+    models.length,
+    Number.isFinite(requestedConcurrency) ? requestedConcurrency : 4,
+  ),
+);
 
 const runId = new Date()
   .toISOString()
@@ -276,6 +290,16 @@ function statusOf(report) {
     : 'FAIL';
 }
 
+function percentile(values, quantile) {
+  if (values.length === 0) return 0;
+  const sorted = [...values].sort((a, b) => a - b);
+  const index = Math.min(
+    sorted.length - 1,
+    Math.max(0, Math.ceil(quantile * sorted.length) - 1),
+  );
+  return sorted[index];
+}
+
 async function main() {
   console.log(`[live-test] Media dir:   ${mediaDir}`);
   console.log(`[live-test] CLI entry:   ${cliEntry}`);
@@ -294,24 +318,32 @@ async function main() {
 
   const byScenario = [];
   const allResults = [];
+  const matrixStartedAt = Date.now();
 
   for (const prompt of prompts) {
-    console.log(`[live-test] === Scenario: ${prompt.id} (${prompt.category ?? 'uncategorized'}) ===`);
+    console.log(
+      `[live-test] === Scenario: ${prompt.id} (${prompt.category ?? 'uncategorized'}) ===`,
+    );
     const scenarioResults = [];
-    for (const model of models) {
-      const label = `${model.provider}/${model.key}`;
-      process.stdout.write(`[live-test]   ${label} ... `);
-      const report = await runOne(model, prompt);
-      const status = statusOf(report);
-      const flag = report.possibleToolCallNarration
-        ? ` (narrated "${report.possibleToolCallNarration}" instead of calling it!)`
-        : '';
-      const retryFlag = report.retried ? ' (retried after timeout)' : '';
-      const noteFlag = report.note ? ' [note: missing media fixture]' : '';
-      console.log(`${status}${flag}${retryFlag}${noteFlag}`);
-      scenarioResults.push(report);
-      allResults.push(report);
-    }
+    let nextModel = 0;
+    const worker = async () => {
+      while (nextModel < models.length) {
+        const model = models[nextModel++];
+        const label = `${model.provider}/${model.key}`;
+        process.stdout.write(`[live-test]   ${label} ... `);
+        const report = await runOne(model, prompt);
+        const status = statusOf(report);
+        const flag = report.possibleToolCallNarration
+          ? ` (narrated "${report.possibleToolCallNarration}" instead of calling it!)`
+          : '';
+        const retryFlag = report.retried ? ' (retried after timeout)' : '';
+        const noteFlag = report.note ? ' [note: missing media fixture]' : '';
+        console.log(`${status}${flag}${retryFlag}${noteFlag}`);
+        scenarioResults.push(report);
+        allResults.push(report);
+      }
+    };
+    await Promise.all(Array.from({ length: concurrency }, () => worker()));
 
     const scenarioDir = join(
       runDir,
@@ -382,11 +414,23 @@ async function main() {
     modelsTested: models.length,
     scenariosTested: prompts.length,
     totalRuns: allResults.length,
+    matrixWallClockMs: Date.now() - matrixStartedAt,
+    configuredConcurrency: concurrency,
     passed: allResults.filter((r) => statusOf(r) === 'OK').length,
     failed: allResults.filter((r) => statusOf(r) === 'FAIL').length,
     narrationRegressions: allResults.filter((r) => r.possibleToolCallNarration)
       .length,
     totalDurationMs: allResults.reduce((sum, r) => sum + r.durationMs, 0),
+    p50DurationMs: percentile(
+      allResults.map((r) => r.durationMs),
+      0.5,
+    ),
+    p95DurationMs: percentile(
+      allResults.map((r) => r.durationMs),
+      0.95,
+    ),
+    overTargetCount: allResults.filter((r) => r.durationMs > targetMs).length,
+    targetMs,
     perModelFailureCounts: models
       .map((model) => {
         const runs = allResults.filter((r) => r.modelKey === model.key);
@@ -421,6 +465,9 @@ async function main() {
     `- Models tested: ${summary.modelsTested} of ${summary.modelsInRegistry} in the registry`,
     `- Scenarios tested: ${summary.scenariosTested}`,
     `- Total runs: ${summary.totalRuns} (passed ${summary.passed}, failed ${summary.failed})`,
+    `- Matrix wall-clock: ${summary.matrixWallClockMs} ms at concurrency ${summary.configuredConcurrency}`,
+    `- Per-run latency: p50 ${summary.p50DurationMs} ms, p95 ${summary.p95DurationMs} ms`,
+    `- Runs over ${summary.targetMs} ms target: ${summary.overTargetCount}`,
     `- Possible tool-call narration regressions: ${summary.narrationRegressions}`,
     '',
     '## Per-model results',
@@ -434,7 +481,10 @@ async function main() {
     '',
     '## Scenarios',
     '',
-    ...byScenario.map((s) => `- \`${s.promptId}\` (${s.category ?? 'uncategorized'}) — see ${s.promptId}/_comparison.md`),
+    ...byScenario.map(
+      (s) =>
+        `- \`${s.promptId}\` (${s.category ?? 'uncategorized'}) — see ${s.promptId}/_comparison.md`,
+    ),
   ];
   writeFileSync(join(runDir, '_summary.md'), mdLines.join('\n'), 'utf8');
 
