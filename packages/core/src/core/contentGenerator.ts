@@ -36,10 +36,7 @@ import {
   CCPA_AI_MODEL_MAPPINGS,
   GEMINI_MODEL_ALIAS_AUTO,
 } from '../config/models.js';
-import {
-  createMultiProviderGenerator,
-  isMultiProviderModel,
-} from '../providers/factory.js';
+import { createMultiProviderGenerator } from '../providers/factory.js';
 import { getModelRegistry } from '../providers/modelRegistry.js';
 import { ModelRoutingContentGenerator } from '../providers/routingGenerator.js';
 
@@ -261,13 +258,15 @@ export async function createContentGenerator(
     }
     // Multi-provider routing: model ids with a known provider prefix
     // (ollama/, lmstudio/, groq/, openrouter/, ...) or registry keys from
-    // configs/models.toml bypass the Google-specific paths entirely.
-    // Google-auth sessions handle these via the ModelRoutingContentGenerator
-    // wrapper below, so /model can switch providers mid-session.
-    if (
-      config.authType === AuthType.MULTI_PROVIDER ||
-      isMultiProviderModel(gcConfig.getModel())
-    ) {
+    // configs/models.toml bypass the Google-specific paths entirely — but
+    // only for MULTI_PROVIDER auth. Google/Gemini auth sessions keep their
+    // native generator here and let the ModelRoutingContentGenerator wrapper
+    // below dispatch multi-provider models per request (lazily, and only
+    // when a key actually exists). Routing the session model eagerly during
+    // a Google sign-in would fail auth outright when the saved model is a
+    // multi-provider model whose provider key isn't set yet ("Sign in with
+    // Google" errors at setup instead of succeeding).
+    if (config.authType === AuthType.MULTI_PROVIDER) {
       let routedModel = gcConfig.getModel();
       if (
         config.authType === AuthType.MULTI_PROVIDER &&

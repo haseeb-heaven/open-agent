@@ -11,8 +11,14 @@ import type { Config } from '@open-agent/core';
 
 describe('Tips', () => {
   it.each([
-    { fileCount: 0, description: 'renders all tips including GEMINI.md tip' },
-    { fileCount: 5, description: 'renders fewer tips when GEMINI.md exists' },
+    {
+      fileCount: 0,
+      description: 'renders all tips including OPENAGENT.md tip',
+    },
+    {
+      fileCount: 5,
+      description: 'renders fewer tips when OPENAGENT.md exists',
+    },
   ])('$description', async ({ fileCount }) => {
     const config = {
       getGeminiMdFileCount: vi.fn().mockReturnValue(fileCount),

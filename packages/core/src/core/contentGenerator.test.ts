@@ -1409,6 +1409,36 @@ describe('createContentGenerator', () => {
     );
   });
 
+  it('should not route a multi-provider saved model through the factory when auth is Google', async () => {
+    // Regression: "Sign in with Google" in setup used to eagerly build the
+    // multi-provider generator for the saved model (e.g. "openrouter-free"),
+    // which throws when that provider's key isn't set yet — so Google
+    // sign-in failed at setup. Google auth must build its native generator
+    // and leave multi-provider models to the per-request routing wrapper.
+    const mockInnerGenerator = {
+      generateContent: vi.fn().mockResolvedValue({}),
+    } as unknown as ContentGenerator;
+    vi.mocked(createCodeAssistContentGenerator).mockResolvedValue(
+      mockInnerGenerator as never,
+    );
+    vi.mocked(createMultiProviderGenerator).mockClear();
+
+    const configWithMultiModel = Object.assign({}, mockConfig, {
+      getModel: vi.fn().mockReturnValue('openrouter-free'),
+    }) as unknown as Config;
+
+    const generator = await createContentGenerator(
+      {
+        authType: AuthType.LOGIN_WITH_GOOGLE,
+      },
+      configWithMultiModel,
+    );
+
+    expect(createMultiProviderGenerator).not.toHaveBeenCalled();
+    expect(createCodeAssistContentGenerator).toHaveBeenCalled();
+    expect(generator).toBeDefined();
+  });
+
   it('should apply model mapping for COMPUTE_ADC', async () => {
     const mockInnerGenerator = {
       generateContent: vi.fn().mockResolvedValue({}),

@@ -6,7 +6,7 @@
 
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { performInit } from '@open-agent/core';
+import { performInit, DEFAULT_CONTEXT_FILENAME } from '@open-agent/core';
 import type {
   Command,
   CommandContext,
@@ -15,7 +15,7 @@ import type {
 
 export class InitCommand implements Command {
   name = 'init';
-  description = 'Analyzes the project and creates a tailored GEMINI.md file';
+  description = `Analyzes the project and creates a tailored ${DEFAULT_CONTEXT_FILENAME} file`;
   requiresWorkspace = true;
 
   async execute(
@@ -27,8 +27,8 @@ export class InitCommand implements Command {
       throw new Error('Command requires a workspace.');
     }
 
-    const geminiMdPath = path.join(targetDir, 'GEMINI.md');
-    const result = performInit(fs.existsSync(geminiMdPath));
+    const contextFilePath = path.join(targetDir, DEFAULT_CONTEXT_FILENAME);
+    const result = performInit(fs.existsSync(contextFilePath));
 
     switch (result.type) {
       case 'message':
@@ -37,7 +37,7 @@ export class InitCommand implements Command {
           data: result,
         };
       case 'submit_prompt':
-        fs.writeFileSync(geminiMdPath, '', 'utf8');
+        fs.writeFileSync(contextFilePath, '', 'utf8');
 
         if (typeof result.content !== 'string') {
           throw new Error('Init command content must be a string.');
@@ -45,13 +45,13 @@ export class InitCommand implements Command {
 
         // Inform the user since we can't trigger the UI-based interactive agent loop here directly.
         // We output the prompt text they can use to re-trigger the generation manually,
-        // or just seed the GEMINI.md file as we've done above.
+        // or just seed the context file as we've done above.
         return {
           name: this.name,
           data: {
             type: 'message',
             messageType: 'info',
-            content: `A template GEMINI.md has been created at ${geminiMdPath}.\n\nTo populate it with project context, you can run the following prompt in a new chat:\n\n${result.content}`,
+            content: `A template ${DEFAULT_CONTEXT_FILENAME} has been created at ${contextFilePath}.\n\nTo populate it with project context, you can run the following prompt in a new chat:\n\n${result.content}`,
           },
         };
 

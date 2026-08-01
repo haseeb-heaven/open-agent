@@ -6,7 +6,10 @@
 
 import { describe, expect, it } from 'vitest';
 import { performance } from 'node:perf_hooks';
-import { createMultiProviderGenerator } from './factory.js';
+import {
+  createMultiProviderGenerator,
+  isMultiProviderModel,
+} from './factory.js';
 import { ModelRegistry } from './modelRegistry.js';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -58,5 +61,32 @@ describe('provider factory performance', () => {
       elapsedMs,
       `model setup took ${elapsedMs.toFixed(1)} ms`,
     ).toBeLessThan(5000);
+  });
+});
+
+describe('local provider sentinel routing', () => {
+  const registry = ModelRegistry.load(registryPath);
+
+  it('treats the "local" provider tag as the Ollama route', () => {
+    const cfg = registry.getModel('local-model');
+    expect(cfg?.provider).toBe('local');
+
+    // Regression: the registry default model ("local-model") carries the
+    // sentinel provider tag "local". The factory must map it to Ollama, or
+    // startup auth on a zero-key install throws "No provider route found
+    // for model \"local-model\"" (resolve.ts and picker.ts already map it).
+    expect(isMultiProviderModel('local-model', registry)).toBe(true);
+    const generator = createMultiProviderGenerator('local-model', {}, registry);
+    expect(generator).toBeDefined();
+    expect(generator!.apiBase).toMatch(/localhost:11434/);
+  });
+
+  it('routes a bare ollama/... id without any key set', () => {
+    const generator = createMultiProviderGenerator(
+      'ollama/llama3.1:8b',
+      {},
+      registry,
+    );
+    expect(generator).toBeDefined();
   });
 });

@@ -1119,7 +1119,7 @@ Logging in with Google... Restarting OpenAgent to continue.
     historyManager.addItem(
       {
         type: MessageType.INFO,
-        text: 'Refreshing hierarchical memory (GEMINI.md or other context files)...',
+        text: 'Refreshing hierarchical memory (OPENAGENT.md or other context files)...',
       },
       Date.now(),
     );

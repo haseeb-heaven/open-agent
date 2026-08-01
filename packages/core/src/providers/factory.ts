@@ -40,13 +40,19 @@ export function isMultiProviderModel(
   const id = (modelId ?? '').trim();
   let { provider } = splitModelId(id);
   if (!provider) {
-    // Registry keys ("nvidia-nemotron", "openrouter-free") carry no prefix
-    // but still resolve through configs/models.toml. Prefer the explicit
-    // provider tag over the model-id prefix (e.g. openrouter-hosted nvidia/*).
+    // Registry keys ("nvidia-nemotron", "openrouter-free", "local-model")
+    // carry no prefix but still resolve through configs/models.toml. Prefer
+    // the explicit provider tag over the model-id prefix (e.g. openrouter-
+    // hosted nvidia/*). "local" is a sentinel meaning "route through Ollama"
+    // (see picker.ts / resolve.ts); the registry default model uses it.
     const reg = registry ?? getModelRegistry();
     const key = reg.resolveModelKey(id);
     const cfg = key ? reg.getModel(key) : undefined;
-    if (cfg?.provider) provider = getProvider(cfg.provider);
+    if (cfg?.provider) {
+      provider = getProvider(cfg.provider);
+      if (!provider && cfg.provider === 'local')
+        provider = getProvider('ollama');
+    }
     if (!provider && cfg?.model) provider = splitModelId(cfg.model).provider;
   }
   // Bare gemini/... ids stay on the native Gemini path.
@@ -75,8 +81,13 @@ export function createMultiProviderGenerator(
 
   // An explicit provider tag in the registry outranks the id prefix:
   // "openai/gpt-oss-20b:free" with provider = "openrouter" must ship
-  // OpenRouter's key to OpenRouter's endpoint, not OpenAI's.
-  const configured = cfg?.provider ? getProvider(cfg.provider) : undefined;
+  // OpenRouter's key to OpenRouter's endpoint, not OpenAI's. The "local"
+  // sentinel routes through Ollama (kept in sync with isMultiProviderModel,
+  // picker.ts, and resolve.ts).
+  const configured = cfg?.provider
+    ? (getProvider(cfg.provider) ??
+      (cfg.provider === 'local' ? getProvider('ollama') : undefined))
+    : undefined;
   const provider = configured ?? splitModelId(id).provider;
   if (!provider) return undefined;
   // Bare gemini/... ids stay on the native Gemini path (must stay in sync

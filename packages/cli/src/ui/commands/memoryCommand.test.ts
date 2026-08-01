@@ -336,9 +336,9 @@ describe('memoryCommand', () => {
         const fileCount = filePaths.length;
         let content;
         if (fileCount > 0) {
-          content = `There are ${fileCount} GEMINI.md file(s) in use:\n\n${filePaths.join('\n')}`;
+          content = `There are ${fileCount} OPENAGENT.md file(s) in use:\n\n${filePaths.join('\n')}`;
         } else {
-          content = 'No GEMINI.md files in use.';
+          content = 'No OPENAGENT.md files in use.';
         }
         return {
           type: 'message',
@@ -357,7 +357,7 @@ describe('memoryCommand', () => {
       });
     });
 
-    it('should display a message if no GEMINI.md files are found', async () => {
+    it('should display a message if no OPENAGENT.md files are found', async () => {
       if (!listCommand.action) throw new Error('Command has no action');
 
       mockGetGeminiMdfilePaths.mockReturnValue([]);
@@ -367,7 +367,7 @@ describe('memoryCommand', () => {
       expect(mockContext.ui.addItem).toHaveBeenCalledWith(
         {
           type: MessageType.INFO,
-          text: 'No GEMINI.md files in use.',
+          text: 'No OPENAGENT.md files in use.',
         },
         expect.any(Number),
       );
@@ -376,7 +376,7 @@ describe('memoryCommand', () => {
     it('should display the file count and paths if they exist', async () => {
       if (!listCommand.action) throw new Error('Command has no action');
 
-      const filePaths = ['/path/one/GEMINI.md', '/path/two/GEMINI.md'];
+      const filePaths = ['/path/one/OPENAGENT.md', '/path/two/OPENAGENT.md'];
       mockGetGeminiMdfilePaths.mockReturnValue(filePaths);
 
       await listCommand.action(mockContext, '');
@@ -384,7 +384,7 @@ describe('memoryCommand', () => {
       expect(mockContext.ui.addItem).toHaveBeenCalledWith(
         {
           type: MessageType.INFO,
-          text: `There are 2 GEMINI.md file(s) in use:\n\n${filePaths.join('\n')}`,
+          text: `There are 2 OPENAGENT.md file(s) in use:\n\n${filePaths.join('\n')}`,
         },
         expect.any(Number),
       );

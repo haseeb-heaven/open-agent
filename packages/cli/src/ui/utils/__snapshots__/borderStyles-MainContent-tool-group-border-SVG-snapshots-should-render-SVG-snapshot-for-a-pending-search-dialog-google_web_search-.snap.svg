@@ -94,8 +94,8 @@
     <text x="153" y="104" fill="#c3677f" textLength="9" lengthAdjust="spacingAndGlyphs">╝</text>
     <text x="0" y="155" fill="#ffffff" textLength="225" lengthAdjust="spacingAndGlyphs">Tips for getting started:</text>
     <text x="0" y="172" fill="#ffffff" textLength="90" lengthAdjust="spacingAndGlyphs">1. Create </text>
-    <text x="90" y="172" fill="#ffffff" textLength="81" lengthAdjust="spacingAndGlyphs" font-weight="bold">GEMINI.md</text>
-    <text x="171" y="172" fill="#ffffff" textLength="333" lengthAdjust="spacingAndGlyphs"> files to customize your interactions</text>
+    <text x="90" y="172" fill="#ffffff" textLength="108" lengthAdjust="spacingAndGlyphs" font-weight="bold">OPENAGENT.md</text>
+    <text x="198" y="172" fill="#ffffff" textLength="333" lengthAdjust="spacingAndGlyphs"> files to customize your interactions</text>
     <text x="0" y="189" fill="#ffffff" textLength="27" lengthAdjust="spacingAndGlyphs">2. </text>
     <text x="27" y="189" fill="#afafaf" textLength="45" lengthAdjust="spacingAndGlyphs">/help</text>
     <text x="72" y="189" fill="#ffffff" textLength="189" lengthAdjust="spacingAndGlyphs"> for more information</text>
