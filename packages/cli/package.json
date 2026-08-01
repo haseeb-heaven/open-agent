@@ -1,6 +1,6 @@
 {
   "name": "open-agent",
-  "version": "4.1.4",
+  "version": "4.1.5",
   "description": "OpenAgent",
   "license": "Apache-2.0",
   "repository": {
@@ -27,7 +27,7 @@
     "dist"
   ],
   "config": {
-    "sandboxImageUri": "ghcr.io/haseeb-heaven/open-agent-sandbox:4.1.4"
+    "sandboxImageUri": "ghcr.io/haseeb-heaven/open-agent-sandbox:4.1.5"
   },
   "dependencies": {
     "@agentclientprotocol/sdk": "0.16.1",

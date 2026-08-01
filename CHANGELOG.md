@@ -1,5 +1,21 @@
 ## Unreleased
 
+## v4.1.5 (2026-08-01) — Setup sign-in fixes and OPENAGENT.md branding
+
+- fix(auth): selecting the free/local model at setup no longer fails with "No
+  provider route found for model 'local-model'" — the `local` provider sentinel
+  now routes to Ollama, so the fallback default model resolves
+- fix(auth): "Sign in with Google" at setup no longer fails when a
+  multi-provider model (e.g. `openrouter-free`) is saved — multi-provider
+  routing is now gated to `MULTI_PROVIDER` auth, and Google/Gemini auth
+  dispatches multi-provider models lazily per request instead of eagerly
+  building a generator whose provider key isn't set yet
+- fix(cli): setup, tips, /memory, /init, folder-trust, and directory-command
+  copy now says OPENAGENT.md instead of GEMINI.md, and extensions default their
+  context file to OPENAGENT.md
+- test: add regression coverage for local sentinel routing and Google-auth model
+  routing
+
 ## v4.1.4 (2026-08-01) — Clean release bundle versioning
 
 - fix(release): rebuild the npm CLI bundle from a clean output directory so
