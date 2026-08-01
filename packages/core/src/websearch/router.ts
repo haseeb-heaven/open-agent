@@ -18,10 +18,10 @@ import type {
  * Gemini is special-cased in the tool (LLM client); HTTP backends follow this order.
  */
 const DEFAULT_HTTP_ORDER = [
+  'exa',
   'brave',
   'tavily',
   'serper',
-  'exa',
   'duckduckgo',
 ] as const;
 
@@ -41,7 +41,7 @@ export function recommendedWebSearchProviderId(
     case 'open_source':
     case 'unknown':
     default:
-      return 'brave';
+      return 'exa';
   }
 }
 
@@ -204,6 +204,22 @@ export async function executeWebSearchHttp(options: {
   );
 }
 
+/**
+ * Human-readable key status for a provider (used by CLI help + wizard).
+ * Honors freeNoKey / keyOptional so keyless providers don't show "✗ no key".
+ */
+export function keyStatusLabel(
+  meta: WebSearchProviderMeta,
+  env: NodeJS.ProcessEnv = process.env,
+): string {
+  if (!meta.envKey) return 'no key needed';
+  const hasKey = Boolean(env[meta.envKey]?.trim());
+  if (meta.freeNoKey || meta.keyOptional) {
+    return hasKey ? '✓ key set (optional)' : 'no key needed';
+  }
+  return hasKey ? '✓ key set' : '✗ no key';
+}
+
 export function webSearchProviderHelpTable(
   env: NodeJS.ProcessEnv = process.env,
   modelId?: string | null,
@@ -219,11 +235,7 @@ export function webSearchProviderHelpTable(
     '',
   ];
   for (const row of ranked) {
-    const key = row.meta.envKey
-      ? env[row.meta.envKey]?.trim()
-        ? '✓ key set'
-        : '✗ no key'
-      : 'no key needed';
+    const key = keyStatusLabel(row.meta, env);
     const rec = row.recommended ? ' ★ recommended' : '';
     lines.push(
       `  ${row.meta.id.padEnd(12)} ${(row.meta.envKey ?? '—').padEnd(18)} ${key}${rec}`,

@@ -14,6 +14,7 @@ import {
   getWebSearchBackend,
   recommendedWebSearchProviderId,
   inferModelFamily,
+  keyStatusLabel,
 } from '@open-agent/core';
 import {
   type CommandContext,
@@ -151,12 +152,12 @@ export const webSearchCommand: SlashCommand = {
         `${backend.meta.displayName}${rec}`,
         `  id:     ${backend.meta.id}`,
         `  env:    ${keyName ?? '(none)'}`,
-        `  status: ${hasKey ? '✓ ready' : '✗ no key'}`,
+        `  status: ${keyStatusLabel(backend.meta)}`,
         `  notes:  ${backend.meta.notes}`,
       ];
       if (backend.meta.signupUrl) {
         lines.push(`  signup: ${backend.meta.signupUrl}`);
-        if (!hasKey) {
+        if (!hasKey && !backend.meta.freeNoKey && !backend.meta.keyOptional) {
           lines.push(
             '',
             'No key set. Press:  /websearch open ' +

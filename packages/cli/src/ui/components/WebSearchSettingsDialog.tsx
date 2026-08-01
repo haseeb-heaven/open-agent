@@ -19,6 +19,7 @@ import {
   writeEnvKey,
   getDefaultEnvFilePath,
   openBrowserSecurely,
+  keyStatusLabel,
   type WebSearchProviderMeta,
 } from '@open-agent/core';
 import { useKeypress } from '../hooks/useKeypress.js';
@@ -58,11 +59,7 @@ export function WebSearchSettingsDialog({
   const items = useMemo(
     () =>
       plan.ranked.map((row) => {
-        const keyLabel = row.meta.envKey
-          ? process.env[row.meta.envKey]?.trim()
-            ? '✓ key set'
-            : '✗ no key'
-          : 'no key needed';
+        const keyLabel = keyStatusLabel(row.meta);
         const rec = row.recommended ? ' ★ RECOMMENDED' : '';
         return {
           value: row.meta.id,

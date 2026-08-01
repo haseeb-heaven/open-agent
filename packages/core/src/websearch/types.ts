@@ -39,6 +39,8 @@ export interface WebSearchProviderMeta {
   notes: string;
   /** True when this backend needs no network key. */
   freeNoKey: boolean;
+  /** True when a key is optional (works without, but a key upgrades limits). */
+  keyOptional?: boolean;
   /**
    * Model families this backend is recommended for (UI badge only).
    * Auto-routing still prefers any available key first.

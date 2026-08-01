@@ -26,8 +26,8 @@ describe('recommendedWebSearchProviderId', () => {
   it('recommends gemini for Gemini models', () => {
     expect(recommendedWebSearchProviderId('gemini')).toBe('gemini');
   });
-  it('recommends brave for open_source', () => {
-    expect(recommendedWebSearchProviderId('open_source')).toBe('brave');
+  it('recommends exa for open_source', () => {
+    expect(recommendedWebSearchProviderId('open_source')).toBe('exa');
   });
   it('recommends duckduckgo for local', () => {
     expect(recommendedWebSearchProviderId('local')).toBe('duckduckgo');
@@ -35,19 +35,20 @@ describe('recommendedWebSearchProviderId', () => {
 });
 
 describe('planWebSearchRoute', () => {
-  it('uses duckduckgo when no keys', () => {
+  it('uses exa (keyless) when no keys', () => {
     const plan = planWebSearchRoute({
       modelId: 'openrouter-free',
       env: {},
     });
-    expect(plan.providerId).toBe('duckduckgo');
-    expect(plan.ranked.some((r) => r.meta.id === 'brave')).toBe(true);
+    expect(plan.providerId).toBe('exa');
+    expect(plan.ranked.some((r) => r.meta.id === 'exa')).toBe(true);
   });
 
-  it('prefers brave when key set for open-source model', () => {
+  it('prefers brave when key set for open-source model and exa unavailable', () => {
     const plan = planWebSearchRoute({
       modelId: 'groq-llama-3.1-8b',
-      env: { BRAVE_API_KEY: 'x' },
+      env: { BRAVE_API_KEY: 'x', EXA_API_KEY: 'e' },
+      preferredProviderId: 'brave',
     });
     expect(plan.providerId).toBe('brave');
     expect(plan.reason.toLowerCase()).toMatch(/recommended|available|brave/);
@@ -81,13 +82,13 @@ describe('planWebSearchRoute', () => {
 });
 
 describe('executeWebSearchHttp', () => {
-  it('falls back to duckduckgo with empty env', async () => {
+  it('uses exa with empty env (keyless), duckduckgo as ultimate fallback', async () => {
     const result = await executeWebSearchHttp({
       query: 'TypeScript handbook',
       env: {},
       modelId: 'openrouter-free',
     });
-    expect(result.provider).toMatch(/duckduckgo/);
+    expect(result.provider).toMatch(/exa|duckduckgo/);
     expect(result.summary.length).toBeGreaterThan(10);
   }, 30000);
 });

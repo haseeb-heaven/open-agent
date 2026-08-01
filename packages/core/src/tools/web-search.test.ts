@@ -35,12 +35,27 @@ describe('WebSearchTool', () => {
     // Force the Gemini grounding path regardless of real provider keys that
     // may be present in the developer's local .env (loaded by test-setup.ts
     // for live websearch probes) — otherwise planWebSearchRoute prefers a
-    // real HTTP backend (Brave/Tavily/…) and these tests hit the network.
+    // real HTTP backend (Exa/Brave/Tavily/…) and these tests hit the network.
     vi.stubEnv('BRAVE_API_KEY', '');
     vi.stubEnv('TAVILY_API_KEY', '');
     vi.stubEnv('SERPER_API_KEY', '');
     vi.stubEnv('EXA_API_KEY', '');
-    vi.stubEnv('WEB_SEARCH_PROVIDER', '');
+    // Exa is keyless (freeNoKey) now, so also force Gemini explicitly and
+    // give the Gemini client a key so the plan selects the Gemini path.
+    vi.stubEnv('GEMINI_API_KEY', 'test-gemini-key');
+    vi.stubEnv('WEB_SEARCH_PROVIDER', 'gemini');
+
+    // Stub fetch so the independent-search fallback path (Exa/DuckDuckGo)
+    // never hits the real network in unit tests.
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({
+        ok: true,
+        text: async () =>
+          'data: {"result":{"content":[{"type":"text","text":"Title: Mock Result\\nURL: https://example.com/mock"}]}}',
+        json: async () => ({ results: [] }),
+      })),
+    );
 
     const mockConfigInstance = {
       getGeminiClient: () => mockGeminiClient,
@@ -67,6 +82,8 @@ describe('WebSearchTool', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
   });
 
   describe('build', () => {

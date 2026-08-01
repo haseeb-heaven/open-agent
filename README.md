@@ -81,24 +81,25 @@ Local (Ollama, LM Studio): **no key**. Cloud: one env var per provider — copy
 ## Web search
 
 `google_web_search` auto-picks a backend from available keys (you do **not**
-need all of them). Fallback without keys: **DuckDuckGo**.
+need all of them). No-key fallback chain: **Exa** (hosted MCP, no key) →
+**DuckDuckGo**.
 
 | Model family       | Best backend                        |
 | ------------------ | ----------------------------------- |
 | Gemini             | Google grounding (`GEMINI_API_KEY`) |
-| Open-source / free | **Brave** (`BRAVE_API_KEY`)         |
+| Open-source / free | **Exa** (no key required)           |
 | Local              | DuckDuckGo (no key)                 |
 
-Also: Tavily, Serper, Exa. Force with `WEB_SEARCH_PROVIDER=brave` (or `tavily` /
-`serper` / `exa` / `gemini` / `duckduckgo`).
+Also: Brave, Tavily, Serper. Force with `WEB_SEARCH_PROVIDER=exa` (or `brave` /
+`tavily` / `serper` / `gemini` / `duckduckgo`).
 
-| Backend | Env              | Signup                                          |
-| ------- | ---------------- | ----------------------------------------------- |
-| Brave   | `BRAVE_API_KEY`  | [keys](https://api.search.brave.com/app/keys)   |
-| Tavily  | `TAVILY_API_KEY` | [app](https://app.tavily.com/home)              |
-| Serper  | `SERPER_API_KEY` | [key](https://serper.dev/api-key)               |
-| Exa     | `EXA_API_KEY`    | [keys](https://dashboard.exa.ai/api-keys)       |
-| Gemini  | `GEMINI_API_KEY` | [AI Studio](https://aistudio.google.com/apikey) |
+| Backend | Env                  | Signup                                          |
+| ------- | -------------------- | ----------------------------------------------- |
+| Exa     | `EXA_API_KEY` (opt.) | [keys](https://dashboard.exa.ai/api-keys)       |
+| Brave   | `BRAVE_API_KEY`      | [keys](https://api.search.brave.com/app/keys)   |
+| Tavily  | `TAVILY_API_KEY`     | [app](https://app.tavily.com/home)              |
+| Serper  | `SERPER_API_KEY`     | [key](https://serper.dev/api-key)               |
+| Gemini  | `GEMINI_API_KEY`     | [AI Studio](https://aistudio.google.com/apikey) |
 
 ```text
 /websearch              # wizard (★ = recommended for current model)

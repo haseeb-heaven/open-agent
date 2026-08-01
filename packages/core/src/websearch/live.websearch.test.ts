@@ -72,14 +72,10 @@ describe('live web search (env keys)', () => {
     30000,
   );
 
-  it.skipIf(!has('EXA_API_KEY'))(
-    'exa live',
-    async () => {
-      const r = await exaBackend.search(QUERY, { env: process.env });
-      expect(r.hits.length).toBeGreaterThan(0);
-    },
-    30000,
-  );
+  it('exa live (keyless MCP)', async () => {
+    const r = await exaBackend.search(QUERY, { env: process.env });
+    expect(r.hits.length + r.summary.length).toBeGreaterThan(0);
+  }, 30000);
 
   it.skipIf(!hasGeminiSearchKey())(
     'gemini key present (grounding exercised via tool unit tests)',
