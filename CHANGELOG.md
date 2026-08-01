@@ -1,5 +1,21 @@
 ## Unreleased
 
+## v4.2.0 (2026-08-02) — Keyless Exa web search (opencode-style)
+
+- feat(websearch): Exa now runs through its hosted MCP endpoint
+  (`mcp.exa.ai/mcp`) and works with **no API key** — matching opencode's keyless
+  Exa web search. Setting `EXA_API_KEY` still upgrades rate limits (passed as
+  `?exaApiKey=`), and the interactive `/websearch` wizard marks it as "no key
+  needed" instead of a misleading missing-key state
+- feat(websearch): default no-key routing is now Exa → DuckDuckGo, and the
+  recommended backend for open-source/OpenAI/Anthropic models is Exa (was
+  Brave). Braver/Tavily/Serper still win when their keys are set
+- feat(websearch): the HTTP fallback chain order is now Exa → Brave → Tavily →
+  Serper → DuckDuckGo; DuckDuckGo remains the ultimate zero-key fallback
+- test: unit coverage for keyless/keyed MCP calls, SSE `data:`-line parsing,
+  direct-JSON responses, and routing changes; live Exa MCP smoke test now runs
+  without a key
+
 ## v4.1.5 (2026-08-01) — Setup sign-in fixes and OPENAGENT.md branding
 
 - fix(auth): selecting the free/local model at setup no longer fails with "No
