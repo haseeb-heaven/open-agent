@@ -1426,15 +1426,17 @@ async function adaptClaudePluginManifest(
   extensionDir: string,
   raw: Record<string, unknown>,
 ): Promise<ExtensionConfig> {
-  const name = typeof raw.name === 'string' ? raw.name : undefined;
+  const rawName: unknown = raw['name'];
+  const name = typeof rawName === 'string' ? rawName : undefined;
   if (!name) {
     throw new Error(
       `Invalid Claude plugin manifest in ${extensionDir}: missing "name"`,
     );
   }
+  const rawVersion: unknown = raw['version'];
   const version =
-    typeof raw.version === 'string' && raw.version.length > 0
-      ? raw.version
+    typeof rawVersion === 'string' && rawVersion.length > 0
+      ? rawVersion
       : '0.0.0';
 
   let mcpServers: Record<string, MCPServerConfig> | undefined;
