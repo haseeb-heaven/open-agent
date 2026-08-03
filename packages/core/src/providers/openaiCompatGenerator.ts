@@ -26,6 +26,7 @@ import {
   type GenerateContentParameters,
   type FunctionDeclaration,
 } from '@google/genai';
+import { Agent as UndiciAgent } from 'undici';
 import type { ContentGenerator } from '../core/contentGenerator.js';
 import {
   providerApiKey,
@@ -34,6 +35,7 @@ import {
 } from './providers.js';
 import { recordProviderUsage } from './usageStore.js';
 import { readCliEnvAlias } from '../utils/cliEnvAliases.js';
+import { SHELL_TOOL_NAME, SHELL_PARAM_COMMAND } from '../tools/tool-names.js';
 
 interface OpenAIMessage {
   role: 'system' | 'user' | 'assistant' | 'tool';
@@ -72,6 +74,90 @@ export interface OpenAICompatOptions {
 /** Fast mode favors first response latency over long-form reasoning. */
 const FAST_MODE_MAX_TOKENS = 1024;
 const FAST_MODE_REQUEST_TIMEOUT_MS = 3000;
+
+/**
+ * How long to keep a local model server's KV cache warm between turns.
+ * Ollama/LM Studio default to a short unload window; keeping the model
+ * resident lets repeated requests reuse the cached prompt prefix (the
+ * bulk of every local request), cutting per-turn prefill latency.
+ */
+const LOCAL_KEEP_ALIVE = '30m';
+
+/**
+ * How long a provider /chat/completions fetch may take before it is aborted.
+ * Local (and LAN-hosted) Ollama / LM Studio models can be much slower to emit
+ * their first SSE byte than cloud APIs: a cold model load plus the prefill of
+ * OpenAgent's large system prompt on a small GPU routinely exceeds the 60s
+ * `headersTimeout` that the app-wide undici dispatcher (see utils/fetch.ts)
+ * applies to fail fast on hung cloud requests. That aggressive timeout destroys
+ * the connection of an otherwise-healthy local generation, which surfaces to
+ * the user as a raw `TypeError: fetch failed` even though curl to the same
+ * server succeeds. Route provider requests through a dedicated dispatcher with
+ * generous timeouts (same idiom as the A2A client manager) so slow-but-working
+ * local models are not spuriously aborted.
+ */
+const PROVIDER_FETCH_HEADERS_TIMEOUT_MS = 30 * 60 * 1000; // 30 min to first byte
+const PROVIDER_FETCH_BODY_TIMEOUT_MS = 60 * 60 * 1000; // 60 min to stream body
+
+/** Dedicated undici dispatcher for OpenAI-compatible provider requests. */
+const providerDispatcher = new UndiciAgent({
+  headersTimeout: PROVIDER_FETCH_HEADERS_TIMEOUT_MS,
+  bodyTimeout: PROVIDER_FETCH_BODY_TIMEOUT_MS,
+});
+
+/** `fetch` bound to {@link providerDispatcher}, used as the default fetch impl. */
+function providerFetch(
+  input: RequestInfo | URL,
+  init?: RequestInit,
+): Promise<Response> {
+  return fetch(input, {
+    ...init,
+    dispatcher: providerDispatcher,
+  } as RequestInit);
+}
+
+/**
+ * Instruction appended to local-provider requests whose models cannot be
+ * relied on for OpenAI-style function calling (either the server rejects
+ * tools outright, or the model is too small to emit valid tool calls).
+ * The model writes a `bash` fenced block instead, which the client parses
+ * and executes as a real {@link SHELL_TOOL_NAME} call. The platform
+ * examples keep small models from reaching for Linux-only commands on
+ * macOS/Windows.
+ */
+function textToolProtocolHint(): string {
+  const platform = process.platform;
+  const examples =
+    platform === 'darwin'
+      ? 'Use macOS commands, e.g. `sw_vers -productVersion` (OS version), `sysctl -n hw.memsize` (total RAM in bytes), `pwd` (working directory).'
+      : platform === 'win32'
+        ? 'Use Windows commands, e.g. `ver`, `wmic ComputerSystem get TotalPhysicalMemory`, `cd`.'
+        : 'Use Linux commands, e.g. `uname -a`, `free -h`, `pwd`.';
+  return `If you need to execute a shell command, put the exact command in a fenced code block tagged bash:
+\`\`\`bash
+echo hello
+\`\`\`
+The system executes it and returns the output, which you then report. Never invent command output; always wait for the execution result. ${examples}`;
+}
+
+/** Matches fenced bash blocks, e.g. ```` ```bash\nls -la\n``` ````. */
+const BASH_FENCE_RE = /```(?:bash|sh|shell|zsh)\s*\r?\n([\s\S]*?)```/g;
+
+/** Extracts the contents of every bash-fenced block in `text`. */
+export function extractBashCommands(text: string): string[] {
+  const commands: string[] = [];
+  const re = new RegExp(BASH_FENCE_RE.source, 'g');
+  let match: RegExpExecArray | null;
+  while ((match = re.exec(text)) !== null) {
+    const command = (match[1] ?? '').trim();
+    // Cap at a generous command length; pathological outputs must never
+    // grow into unbounded tool payloads.
+    if (command && command.length <= 8192) {
+      commands.push(command);
+    }
+  }
+  return commands;
+}
 
 function contentsToList(
   contents: GenerateContentParameters['contents'],
@@ -319,7 +405,15 @@ export class OpenAICompatContentGenerator implements ContentGenerator {
       Number.isFinite(configuredTimeout) && configuredTimeout > 0
         ? configuredTimeout
         : FAST_MODE_REQUEST_TIMEOUT_MS;
-    this.fetchImpl = options.fetchImpl ?? fetch;
+    // Local providers (Ollama / LM Studio) get a dedicated undici dispatcher
+    // with generous timeouts: cold model loads + prefill of a large system
+    // prompt can take far longer than the 60s app-wide headersTimeout (utils/
+    // fetch.ts), which would otherwise abort otherwise-healthy local
+    // generations as `TypeError: fetch failed`. Cloud providers keep the
+    // global dispatcher so genuinely hung free routers still fail fast and
+    // fall through the routing chain instead of blocking for minutes.
+    this.fetchImpl =
+      options.fetchImpl ?? (options.provider.local ? providerFetch : fetch);
   }
 
   /**
@@ -406,15 +500,64 @@ export class OpenAICompatContentGenerator implements ContentGenerator {
         )
       : configuredMaxTokens;
 
+    const messages = toOpenAIMessages(request);
+    if (this.textToolProtocolEnabled(request)) {
+      // Trailing user message keeps the protocol instruction at the end of
+      // the prompt, where small local models (and prompt truncation) see it.
+      messages.push({ role: 'user', content: textToolProtocolHint() });
+    }
+
     return {
       model: this.model,
-      messages: toOpenAIMessages(request),
+      messages,
       stream,
       ...(stream ? { stream_options: { include_usage: true } } : {}),
       temperature: request.config?.temperature ?? this.temperature ?? 0.1,
       ...(maxTokens ? { max_tokens: maxTokens } : {}),
       ...(tools ? { tools } : {}),
+      ...(this.provider.local ? { keep_alive: LOCAL_KEEP_ALIVE } : {}),
     };
+  }
+
+  /**
+   * Whether the bash-fence text protocol applies to this request: only
+   * local (Ollama/LM Studio) providers, and only when the request actually
+   * carries tools (agent mode). Plain chat stays untouched. Applies both
+   * when tools are sent and after a "tools not supported" retry — the
+   * retry path is exactly when the model must fall back to text fences.
+   */
+  private textToolProtocolEnabled(request: GenerateContentParameters): boolean {
+    return this.provider.local && this.requestHasTools(request);
+  }
+
+  private requestHasTools(request: GenerateContentParameters): boolean {
+    return (toOpenAITools(request)?.length ?? 0) > 0;
+  }
+
+  /**
+   * Converts bash-fenced blocks found in a model's plain-text reply into
+   * real {@link SHELL_TOOL_NAME} function calls, so local models without
+   * reliable function calling can still drive command execution through
+   * the normal tool/approval pipeline. Returns only the synthesized calls;
+   * no-op when the model already emitted function calls.
+   */
+  private synthesizeBashToolCalls(parts: Part[]): Part[] {
+    if (parts.some((part) => part.functionCall)) {
+      return [];
+    }
+    const text = parts
+      .map((part) => part.text)
+      .filter((t): t is string => typeof t === 'string')
+      .join('\n');
+    if (!text) return [];
+    const commands = extractBashCommands(text);
+    return commands.map((command, i) => ({
+      functionCall: {
+        id: `text_bash_${i + 1}`,
+        name: SHELL_TOOL_NAME,
+        args: { [SHELL_PARAM_COMMAND]: command },
+      },
+    }));
   }
 
   private headers(): Record<string, string> {
@@ -490,6 +633,9 @@ export class OpenAICompatContentGenerator implements ContentGenerator {
     if (parts.length === 0) {
       throw emptyResponseError(this.provider.id, false);
     }
+    if (this.textToolProtocolEnabled(request)) {
+      parts.push(...this.synthesizeBashToolCalls(parts));
+    }
     return makeResponse(parts, {
       finishReason: mapFinishReason(choice?.finish_reason),
       usage: payload.usage,
@@ -509,10 +655,12 @@ export class OpenAICompatContentGenerator implements ContentGenerator {
     const body = resp.body;
     const model = this.model;
     const providerId = this.provider.id;
+    const textProtocolEnabled = this.textToolProtocolEnabled(request);
 
     async function* stream(): AsyncGenerator<GenerateContentResponse> {
       const decoder = new TextDecoder();
       let buffer = '';
+      let streamedText = '';
       // Streamed tool calls arrive fragmented; accumulate by a stable key.
       // Prefer call.id, then call.index (per the OpenAI streaming spec).
       // Some backends omit both on continuation chunks, in which case the
@@ -567,6 +715,7 @@ export class OpenAICompatContentGenerator implements ContentGenerator {
             const delta = choice.delta;
             if (!delta) continue;
             if (delta.content) {
+              streamedText += delta.content;
               yield makeResponse([{ text: delta.content }], {
                 modelVersion: model,
               });
@@ -614,6 +763,17 @@ export class OpenAICompatContentGenerator implements ContentGenerator {
         finalParts.push({
           functionCall: { id: call.id, name: call.name, args },
         });
+      }
+      if (textProtocolEnabled && finalParts.length === 0 && streamedText) {
+        for (const command of extractBashCommands(streamedText)) {
+          finalParts.push({
+            functionCall: {
+              id: `text_bash_${finalParts.length + 1}`,
+              name: SHELL_TOOL_NAME,
+              args: { [SHELL_PARAM_COMMAND]: command },
+            },
+          });
+        }
       }
       if (finalParts.length > 0 || usage || finish) {
         if (usage) {

@@ -5,13 +5,16 @@
  */
 
 import { describe, it, expect, vi } from 'vitest';
+import { Agent } from 'undici';
 import {
   OpenAICompatContentGenerator,
+  extractBashCommands,
   toOpenAIMessages,
   toOpenAITools,
 } from './openaiCompatGenerator.js';
 import { getProvider } from './providers.js';
 import type { GenerateContentParameters } from '@google/genai';
+import { SHELL_PARAM_COMMAND, SHELL_TOOL_NAME } from '../tools/tool-names.js';
 
 function jsonResponse(payload: unknown, status = 200): Response {
   return new Response(JSON.stringify(payload), {
@@ -578,5 +581,309 @@ describe('OpenAICompatContentGenerator', () => {
       })(),
     ).rejects.toThrow(/stream returned no content/);
     expect(chunks).toHaveLength(0);
+  });
+});
+
+describe('bash-fence text tool protocol (local models)', () => {
+  const AGENT_REQUEST: GenerateContentParameters = {
+    model: 'ollama/qwen2.5:1.5b',
+    contents: [{ role: 'user', parts: [{ text: 'run something' }] }],
+    config: {
+      systemInstruction: { role: 'user', parts: [{ text: 'be brief' }] },
+      tools: [
+        {
+          functionDeclarations: [
+            {
+              name: SHELL_TOOL_NAME,
+              description: 'Runs a shell command',
+              parametersJsonSchema: {
+                type: 'object',
+                properties: { [SHELL_PARAM_COMMAND]: { type: 'string' } },
+                required: [SHELL_PARAM_COMMAND],
+              },
+            },
+          ],
+        },
+      ],
+    },
+  };
+
+  function functionCallsOf(response: {
+    candidates?: Array<{
+      content?: { parts?: Array<{ functionCall?: unknown }> };
+    }>;
+  }) {
+    return (
+      response.candidates?.[0]?.content?.parts
+        ?.map((part) => part.functionCall)
+        .filter(Boolean) ?? []
+    );
+  }
+
+  it('extractBashCommands pulls commands out of fenced blocks', () => {
+    expect(
+      extractBashCommands('Here:\n```bash\nsw_vers -productVersion\n```\ndone'),
+    ).toEqual(['sw_vers -productVersion']);
+    expect(
+      extractBashCommands('```sh\nls -la\n``` and ```shell\necho hi\n```'),
+    ).toEqual(['ls -la', 'echo hi']);
+    expect(extractBashCommands('no fences anywhere')).toEqual([]);
+    expect(extractBashCommands('```python\nprint(1)\n```')).toEqual([]);
+  });
+
+  it('synthesizes a run_shell_command call from a bash-fenced text reply', async () => {
+    const fetchImpl = vi.fn().mockResolvedValueOnce(
+      jsonResponse({
+        choices: [
+          {
+            message: {
+              content: 'Running now:\n```bash\nsw_vers -productVersion\n```',
+            },
+            finish_reason: 'stop',
+          },
+        ],
+      }),
+    );
+    const generator = new OpenAICompatContentGenerator({
+      modelId: 'ollama/qwen2.5:1.5b',
+      provider: getProvider('ollama')!,
+      fetchImpl,
+    });
+    const response = await generator.generateContent(AGENT_REQUEST, 'p');
+    expect(functionCallsOf(response)).toEqual([
+      {
+        id: 'text_bash_1',
+        name: SHELL_TOOL_NAME,
+        args: { [SHELL_PARAM_COMMAND]: 'sw_vers -productVersion' },
+      },
+    ]);
+  });
+
+  it('synthesizes run_shell_command calls from streamed bash-fenced text', async () => {
+    const fetchImpl = vi.fn().mockResolvedValueOnce(
+      sseResponse([
+        JSON.stringify({
+          choices: [
+            {
+              delta: {
+                content:
+                  'Info:\n```bash\nsysctl -n hw.memsize\n```\n```bash\npwd\n```',
+              },
+            },
+          ],
+        }),
+        JSON.stringify({
+          choices: [{ delta: {}, finish_reason: 'stop' }],
+        }),
+        '[DONE]',
+      ]),
+    );
+    const generator = new OpenAICompatContentGenerator({
+      modelId: 'ollama/qwen2.5:1.5b',
+      provider: getProvider('ollama')!,
+      fetchImpl,
+    });
+    const chunks: Array<{
+      candidates?: Array<{
+        content?: { parts?: Array<{ functionCall?: unknown }> };
+      }>;
+    }> = [];
+    for await (const chunk of await generator.generateContentStream(
+      AGENT_REQUEST,
+      'p',
+    )) {
+      chunks.push(chunk);
+    }
+    expect(functionCallsOf(chunks.at(-1) as never)).toEqual([
+      {
+        id: 'text_bash_1',
+        name: SHELL_TOOL_NAME,
+        args: { [SHELL_PARAM_COMMAND]: 'sysctl -n hw.memsize' },
+      },
+      {
+        id: 'text_bash_2',
+        name: SHELL_TOOL_NAME,
+        args: { [SHELL_PARAM_COMMAND]: 'pwd' },
+      },
+    ]);
+  });
+
+  it('does not synthesize for plain chat without tools', async () => {
+    const fetchImpl = vi.fn().mockResolvedValueOnce(
+      jsonResponse({
+        choices: [
+          {
+            message: {
+              content: 'For example:\n```bash\npwd\n```',
+            },
+            finish_reason: 'stop',
+          },
+        ],
+      }),
+    );
+    const generator = new OpenAICompatContentGenerator({
+      modelId: 'ollama/qwen2.5:1.5b',
+      provider: getProvider('ollama')!,
+      fetchImpl,
+    });
+    const response = await generator.generateContent(REQUEST, 'p');
+    expect(functionCallsOf(response)).toEqual([]);
+  });
+
+  it('does not synthesize for cloud providers', async () => {
+    const fetchImpl = vi.fn().mockResolvedValueOnce(
+      jsonResponse({
+        choices: [
+          {
+            message: {
+              content: '```bash\npwd\n```',
+            },
+            finish_reason: 'stop',
+          },
+        ],
+      }),
+    );
+    const generator = new OpenAICompatContentGenerator({
+      modelId: 'groq/llama-3.1-8b-instant',
+      provider: getProvider('groq')!,
+      env: { GROQ_API_KEY: 'x' },
+      fetchImpl,
+    });
+    const response = await generator.generateContent(AGENT_REQUEST, 'p');
+    expect(functionCallsOf(response)).toEqual([]);
+  });
+
+  it('prefers real tool_calls over fenced text', async () => {
+    const fetchImpl = vi.fn().mockResolvedValueOnce(
+      jsonResponse({
+        choices: [
+          {
+            message: {
+              content: '```bash\npwd\n```',
+              tool_calls: [
+                {
+                  id: 'call_9',
+                  function: { name: 'ls', arguments: '{"dir":"/"}' },
+                },
+              ],
+            },
+            finish_reason: 'tool_calls',
+          },
+        ],
+      }),
+    );
+    const generator = new OpenAICompatContentGenerator({
+      modelId: 'ollama/qwen2.5:1.5b',
+      provider: getProvider('ollama')!,
+      fetchImpl,
+    });
+    const response = await generator.generateContent(AGENT_REQUEST, 'p');
+    expect(functionCallsOf(response)).toEqual([
+      { id: 'call_9', name: 'ls', args: { dir: '/' } },
+    ]);
+  });
+
+  it('appends the protocol hint and keep_alive to local requests', async () => {
+    const fetchImpl = vi.fn().mockResolvedValueOnce(
+      jsonResponse({
+        choices: [{ message: { content: 'ok' }, finish_reason: 'stop' }],
+      }),
+    );
+    const generator = new OpenAICompatContentGenerator({
+      modelId: 'ollama/qwen2.5:1.5b',
+      provider: getProvider('ollama')!,
+      fetchImpl,
+    });
+    await generator.generateContent(AGENT_REQUEST, 'p');
+    const body = JSON.parse(
+      (fetchImpl.mock.calls[0][1] as { body: string }).body,
+    ) as { keep_alive?: string; tools?: unknown; messages: unknown[] };
+    expect(body.keep_alive).toBe('30m');
+    expect(body.tools).toBeDefined();
+    expect(body.messages.at(-1)).toMatchObject({
+      role: 'user',
+      content: expect.stringContaining('fenced code block tagged bash'),
+    });
+  });
+
+  it('keeps the hint and drops tools after a "does not support tools" retry', async () => {
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            error: {
+              message:
+                'registry.ollama.ai/library/smollm2:135m does not support tools',
+            },
+          }),
+          {
+            status: 400,
+            headers: { 'Content-Type': 'application/json' },
+          },
+        ),
+      )
+      .mockResolvedValueOnce(
+        jsonResponse({
+          choices: [
+            {
+              message: {
+                content: '```bash\npwd\n```',
+              },
+              finish_reason: 'stop',
+            },
+          ],
+        }),
+      );
+    const generator = new OpenAICompatContentGenerator({
+      modelId: 'ollama/smollm2:135m',
+      provider: getProvider('ollama')!,
+      fetchImpl,
+    });
+    const response = await generator.generateContent(AGENT_REQUEST, 'p');
+    const bodies = fetchImpl.mock.calls.map((call) =>
+      JSON.parse((call[1] as { body: string }).body),
+    ) as Array<{ tools?: unknown; messages: unknown[] }>;
+    expect(bodies).toHaveLength(2);
+    expect(bodies[0].tools).toBeDefined();
+    expect(bodies[1].tools).toBeUndefined();
+    expect(bodies[1].messages.at(-1)).toMatchObject({
+      role: 'user',
+      content: expect.stringContaining('fenced code block tagged bash'),
+    });
+    expect(functionCallsOf(response)).toEqual([
+      {
+        id: 'text_bash_1',
+        name: SHELL_TOOL_NAME,
+        args: { [SHELL_PARAM_COMMAND]: 'pwd' },
+      },
+    ]);
+  });
+
+  it('uses a dedicated long-timeout dispatcher when no fetchImpl is supplied', async () => {
+    // The app-wide undici dispatcher applies a short (60s) headersTimeout to
+    // fail fast on hung cloud requests. Slow local / LAN Ollama models must not
+    // inherit that and get spuriously aborted as `TypeError: fetch failed`.
+    // Regression guard: the default path must attach its own dispatcher.
+    const globalFetch = vi.fn().mockResolvedValueOnce(
+      jsonResponse({
+        choices: [{ message: { content: 'ok' }, finish_reason: 'stop' }],
+      }),
+    );
+    vi.stubGlobal('fetch', globalFetch);
+    try {
+      const generator = new OpenAICompatContentGenerator({
+        modelId: 'ollama/gemma2:2b',
+        provider: getProvider('ollama')!,
+      });
+      await generator.generateContent(REQUEST, 'prompt-id');
+
+      const suppliedDispatcher = (
+        globalFetch.mock.calls[0][1] as { dispatcher?: unknown }
+      ).dispatcher;
+      expect(suppliedDispatcher).toBeInstanceOf(Agent);
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });
