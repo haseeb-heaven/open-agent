@@ -1,3 +1,13 @@
+## v4.2.1 (2026-08-03) — Local-model reliability and CLI build fix
+
+- fix(providers): local (and LAN-hosted) Ollama / LM Studio requests no longer
+  fail with `TypeError: fetch failed` when a cold model load + large
+  system-prompt prefill exceeds the app-wide 60s `headersTimeout`.
+  Local-provider requests now go through a dedicated undici dispatcher with
+  generous 30min/60min timeouts; cloud providers keep the fast-fail behavior
+- fix(cli): `adaptClaudePluginManifest` no longer trips `TS4111` under
+  `noPropertyAccessFromIndexSignature`, unblocking the CLI build/publish
+
 ## Unreleased
 
 ## v4.2.0 (2026-08-02) — Keyless Exa web search (opencode-style)
