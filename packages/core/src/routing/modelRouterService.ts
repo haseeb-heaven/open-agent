@@ -19,6 +19,10 @@ import { CompositeStrategy } from './strategies/compositeStrategy.js';
 import { FallbackStrategy } from './strategies/fallbackStrategy.js';
 import { OverrideStrategy } from './strategies/overrideStrategy.js';
 import { ApprovalModeStrategy } from './strategies/approvalModeStrategy.js';
+import {
+  JevClassifierStrategy,
+  JEV_API_KEY_ENV_VAR,
+} from './strategies/jevClassifierStrategy.js';
 
 import { logModelRouting } from '../telemetry/loggers.js';
 import { ModelRoutingEvent } from '../telemetry/types.js';
@@ -49,6 +53,11 @@ export class ModelRouterService {
     // Then, if enabled, the Gemma classifier is used.
     if (this.config.getGemmaModelRouterSettings()?.enabled) {
       strategies.push(new GemmaClassifierStrategy());
+    }
+
+    // Then, if configured, the Jev decision engine classifies task complexity.
+    if (process.env[JEV_API_KEY_ENV_VAR]) {
+      strategies.push(new JevClassifierStrategy());
     }
 
     // The generic classifier is next.
