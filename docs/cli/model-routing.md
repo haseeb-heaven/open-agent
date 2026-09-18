@@ -26,6 +26,27 @@ policies.
     the CLI will use an available fallback model for the current turn or the
     remainder of the session.
 
+### Jev Task-Complexity Routing
+
+open-agent can delegate task-complexity classification to TypeSafe AI's **Jev
+System One** decision engine (`@typesafe-ai/sdk`). Instead of spending reasoning
+tokens from the primary execution models on routing, Jev classifies each request
+as `simple`, `standard`, `complex`, or `expert` and routes it to the `flash` or
+`pro` model tier accordingly.
+
+To enable it, set the `JEV_API_KEY` environment variable before launching the
+CLI:
+
+```sh
+export JEV_API_KEY=<your-typesafe-api-key>
+```
+
+When configured, the Jev classifier runs early in the routing chain (before the
+generic LLM classifier). If Jev reports a confidence below the acceptance
+threshold, times out, or is otherwise unavailable, routing automatically falls
+through to the standard LLM-based classifier chain, so behavior degrades
+gracefully.
+
 ### Local Model Routing (Experimental)
 
 open-agent supports using a local model for routing decisions. When configured,
@@ -55,5 +76,9 @@ The model used by open-agent is determined by the following order of precedence:
 4.  **Local model (experimental):** If the Gemma local model router is enabled
     in your `settings.json` file, the CLI will use the local Gemma model
     (instead of Gemini models) to route the request to an appropriate model.
-5.  **Default model:** If none of the above are set, the default model will be
+5.  **Jev decision engine:** If the `JEV_API_KEY` environment variable is set,
+    the Jev System One model classifies task complexity and routes the request
+    to the `flash` or `pro` tier. Low-confidence or failed classifications fall
+    through to the generic classifiers below.
+6.  **Default model:** If none of the above are set, the default model will be
     used. The default model is `auto`

@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { ModelRouterService } from './modelRouterService.js';
 import { Config } from '../config/config.js';
 
@@ -21,6 +21,7 @@ import { NumericalClassifierStrategy } from './strategies/numericalClassifierStr
 import { logModelRouting } from '../telemetry/loggers.js';
 import { ModelRoutingEvent } from '../telemetry/types.js';
 import { GemmaClassifierStrategy } from './strategies/gemmaClassifierStrategy.js';
+import { JevClassifierStrategy } from './strategies/jevClassifierStrategy.js';
 import { ApprovalMode } from '../policy/types.js';
 
 vi.mock('../config/config.js');
@@ -33,6 +34,7 @@ vi.mock('./strategies/approvalModeStrategy.js');
 vi.mock('./strategies/classifierStrategy.js');
 vi.mock('./strategies/numericalClassifierStrategy.js');
 vi.mock('./strategies/gemmaClassifierStrategy.js');
+vi.mock('./strategies/jevClassifierStrategy.js');
 vi.mock('../telemetry/loggers.js');
 vi.mock('../telemetry/types.js');
 
@@ -46,6 +48,7 @@ describe('ModelRouterService', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubEnv('JEV_API_KEY', '');
 
     mockConfig = new Config({} as never);
     mockBaseLlmClient = {} as BaseLlmClient;
@@ -94,6 +97,10 @@ describe('ModelRouterService', () => {
     };
   });
 
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   it('should initialize with a CompositeStrategy', () => {
     expect(CompositeStrategy).toHaveBeenCalled();
     expect(service['strategy']).toBeInstanceOf(CompositeStrategy);
@@ -138,6 +145,29 @@ describe('ModelRouterService', () => {
     expect(childStrategies[1]).toBeInstanceOf(OverrideStrategy);
     expect(childStrategies[2]).toBeInstanceOf(ApprovalModeStrategy);
     expect(childStrategies[3]).toBeInstanceOf(GemmaClassifierStrategy);
+    expect(childStrategies[4]).toBeInstanceOf(ClassifierStrategy);
+    expect(childStrategies[5]).toBeInstanceOf(NumericalClassifierStrategy);
+    expect(childStrategies[6]).toBeInstanceOf(DefaultStrategy);
+    expect(compositeStrategyArgs[1]).toBe('agent-router');
+  });
+
+  it('should include JevClassifierStrategy when JEV_API_KEY is set', () => {
+    vi.stubEnv('JEV_API_KEY', 'test-jev-key');
+
+    // Clear previous mock calls from beforeEach
+    vi.mocked(CompositeStrategy).mockClear();
+
+    // Re-initialize the service to pick up the new env var
+    service = new ModelRouterService(mockConfig);
+
+    const compositeStrategyArgs = vi.mocked(CompositeStrategy).mock.calls[0];
+    const childStrategies = compositeStrategyArgs[0];
+
+    expect(childStrategies.length).toBe(7);
+    expect(childStrategies[0]).toBeInstanceOf(FallbackStrategy);
+    expect(childStrategies[1]).toBeInstanceOf(OverrideStrategy);
+    expect(childStrategies[2]).toBeInstanceOf(ApprovalModeStrategy);
+    expect(childStrategies[3]).toBeInstanceOf(JevClassifierStrategy);
     expect(childStrategies[4]).toBeInstanceOf(ClassifierStrategy);
     expect(childStrategies[5]).toBeInstanceOf(NumericalClassifierStrategy);
     expect(childStrategies[6]).toBeInstanceOf(DefaultStrategy);
