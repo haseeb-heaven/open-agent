@@ -656,7 +656,7 @@ their corresponding top-level category object in your `settings.json` file.
       "gemini-3.1-flash-lite-preview": {
         "extends": "chat-base-3",
         "modelConfig": {
-          "model": "gemini-3.1-flash-lite-preview"
+          "model": "gemini-3.1-flash-lite"
         }
       },
       "gemini-2.5-pro": {
