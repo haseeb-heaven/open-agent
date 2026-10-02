@@ -76,6 +76,8 @@ function complexityToModelAlias(complexity: JevComplexity): string {
     case 'complex':
     case 'expert':
       return PRO_MODEL;
+    default:
+      throw new Error('Unsupported Jev complexity choice.');
   }
 }
 
@@ -156,15 +158,24 @@ export class JevClassifierStrategy implements RoutingStrategy {
       // Take the last N turns from the *cleaned* history.
       const finalHistory = cleanHistory.slice(-HISTORY_TURNS_FOR_CONTEXT);
 
-      const state = this.buildState([
-        ...finalHistory,
-        createUserContent(context.request),
-      ]);
+      const turns = [...finalHistory, createUserContent(context.request)];
+      if (
+        turns.some((turn) =>
+          turn.parts?.some((part) =>
+            Object.keys(part).some((key) => key !== 'text'),
+          ),
+        )
+      ) {
+        return null;
+      }
+
+      const state = this.buildState(turns);
 
       const client = new TypeSafeClient({
         apiKey,
         logLevel: 'warn',
         timeout: JEV_REQUEST_TIMEOUT_MS,
+        retry: { maxRetries: 0 },
       });
 
       const response = await client.systemOne(
@@ -179,6 +190,10 @@ export class JevClassifierStrategy implements RoutingStrategy {
 
       const answer = response.answers.complexity;
       const latencyMs = Date.now() - startTime;
+
+      if (!Object.hasOwn(COMPLEXITY_CRITERIA, answer.choice)) {
+        return null;
+      }
 
       if (answer.confidence < JEV_CONFIDENCE_THRESHOLD) {
         debugLogger.debug(

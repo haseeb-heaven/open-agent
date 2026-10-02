@@ -180,6 +180,20 @@ describe('JevClassifierStrategy', () => {
     expect(decision!.model).toBe(DEFAULT_GEMINI_MODEL);
   });
 
+  it('should decline an unsupported Jev complexity choice', async () => {
+    mockSystemOne.mockResolvedValue(makeJevResponse('unsupported', 0.95));
+
+    const decision = await strategy.route(
+      mockContext,
+      mockConfig,
+      mockBaseLlmClient,
+      mockLocalLiteRtLmClient,
+    );
+
+    expect(decision).toBeNull();
+    expect(mockConfig.getGemini31Launched).not.toHaveBeenCalled();
+  });
+
   it('should decline when confidence is below the threshold', async () => {
     mockSystemOne.mockResolvedValue(makeJevResponse('complex', 0.3));
 
@@ -204,7 +218,10 @@ describe('JevClassifierStrategy', () => {
     );
 
     expect(mockTypeSafeClient).toHaveBeenCalledWith(
-      expect.objectContaining({ apiKey: 'test-jev-key' }),
+      expect.objectContaining({
+        apiKey: 'test-jev-key',
+        retry: { maxRetries: 0 },
+      }),
     );
     expect(mockSystemOne).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -253,7 +270,10 @@ describe('JevClassifierStrategy', () => {
       history: [
         createUserContent('first question'),
         { role: 'model', parts: [{ text: 'first answer' }] },
-        createUserContent([{ functionCall: { name: 'read_file', args: {} } }]),
+        {
+          role: 'model',
+          parts: [{ functionCall: { name: 'read_file', args: {} } }],
+        },
       ],
     };
 
@@ -269,5 +289,51 @@ describe('JevClassifierStrategy', () => {
     expect(state).toContain('first answer');
     expect(state).toContain('simple task');
     expect(state).not.toContain('functionCall');
+  });
+
+  it('should decline when the request contains non-text content', async () => {
+    mockContext = {
+      ...mockContext,
+      request: [
+        { text: 'Describe this image.' },
+        { inlineData: { data: 'aW1hZ2U=', mimeType: 'image/png' } },
+      ],
+    };
+
+    const decision = await strategy.route(
+      mockContext,
+      mockConfig,
+      mockBaseLlmClient,
+      mockLocalLiteRtLmClient,
+    );
+
+    expect(decision).toBeNull();
+    expect(mockSystemOne).not.toHaveBeenCalled();
+  });
+
+  it('should decline when recent history contains non-text content', async () => {
+    mockContext = {
+      ...mockContext,
+      history: [
+        createUserContent([
+          {
+            fileData: {
+              fileUri: 'gs://test/document.pdf',
+              mimeType: 'application/pdf',
+            },
+          },
+        ]),
+      ],
+    };
+
+    const decision = await strategy.route(
+      mockContext,
+      mockConfig,
+      mockBaseLlmClient,
+      mockLocalLiteRtLmClient,
+    );
+
+    expect(decision).toBeNull();
+    expect(mockSystemOne).not.toHaveBeenCalled();
   });
 });
