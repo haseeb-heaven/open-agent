@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { choice, TypeSafeClient } from '@typesafe-ai/sdk';
+import { choice, TypeSafeClient, type Fetch } from '@typesafe-ai/sdk';
 import type { BaseLlmClient } from '../../core/baseLlmClient.js';
 import type {
   RoutingContext,
@@ -41,6 +41,28 @@ const JEV_CONFIDENCE_THRESHOLD = 0.6;
  * the critical path of every turn, so the classifier must fail fast.
  */
 const JEV_REQUEST_TIMEOUT_MS = 10_000;
+
+/**
+ * Fetch wrapper for the TypeSafe SDK that drains the response body before
+ * handing it to the SDK. SDK 0.6.0's `bufferResponse` tees the body with
+ * `clone()` and cancels both halves on abort, and that teardown of an
+ * in-flight body stream rejects the clone's pending read with a DOMException
+ * that nothing awaits — an unhandled rejection that kills a bare Node
+ * consumer of `@open-agent/core`. A fully buffered `Response` has an idle
+ * stream, so the same teardown becomes a no-op and nothing rejects. Remove
+ * this once the SDK cancels its drained clone without leaving a dangling
+ * rejection (see the real-transport regression tests in
+ * jevClassifierStrategy.unmocked.test.ts).
+ */
+const bufferedFetch: Fetch = async (input, init) => {
+  const response = await globalThis.fetch(input, init);
+  const body = await response.arrayBuffer();
+  return new Response(body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: response.headers,
+  });
+};
 
 const COMPLEXITY_CRITERIA = {
   simple:
@@ -143,6 +165,7 @@ export class JevClassifierStrategy implements RoutingStrategy {
         logLevel: 'warn',
         timeout: JEV_REQUEST_TIMEOUT_MS * 2,
         retry: { maxRetries: 0 },
+        fetch: bufferedFetch,
       });
 
       const abortController = new AbortController();
