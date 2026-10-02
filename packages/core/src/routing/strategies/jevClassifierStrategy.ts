@@ -161,8 +161,14 @@ export class JevClassifierStrategy implements RoutingStrategy {
       const turns = [...finalHistory, createUserContent(context.request)];
       if (
         turns.some((turn) =>
-          turn.parts?.some((part) =>
-            Object.keys(part).some((key) => key !== 'text'),
+          turn.parts?.some(
+            (part) =>
+              typeof part.text !== 'string' ||
+              ('thoughtSignature' in part &&
+                typeof part.thoughtSignature !== 'string') ||
+              Object.keys(part).some(
+                (key) => key !== 'text' && key !== 'thoughtSignature',
+              ),
           ),
         )
       ) {

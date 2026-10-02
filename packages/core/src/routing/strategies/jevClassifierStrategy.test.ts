@@ -311,6 +311,94 @@ describe('JevClassifierStrategy', () => {
     expect(mockSystemOne).not.toHaveBeenCalled();
   });
 
+  it.each([
+    ['non-string text', { text: 42 }],
+    [
+      'non-string thoughtSignature',
+      { text: 'simple task', thoughtSignature: 42 },
+    ],
+  ])(
+    'should decline when the request contains %s',
+    async (_description, part) => {
+      mockContext = {
+        ...mockContext,
+        request: [part] as unknown as typeof mockContext.request,
+      };
+
+      const decision = await strategy.route(
+        mockContext,
+        mockConfig,
+        mockBaseLlmClient,
+        mockLocalLiteRtLmClient,
+      );
+
+      expect(decision).toBeNull();
+      expect(mockSystemOne).not.toHaveBeenCalled();
+    },
+  );
+
+  it('should classify ordinary text parts with thoughtSignature metadata', async () => {
+    mockSystemOne.mockResolvedValue(makeJevResponse('simple', 0.95));
+    mockContext = {
+      ...mockContext,
+      request: [{ text: 'simple task', thoughtSignature: 'opaque-signature' }],
+    };
+
+    const decision = await strategy.route(
+      mockContext,
+      mockConfig,
+      mockBaseLlmClient,
+      mockLocalLiteRtLmClient,
+    );
+
+    expect(decision).not.toBeNull();
+    expect(decision!.model).toBe(DEFAULT_GEMINI_FLASH_MODEL);
+    expect(mockSystemOne).toHaveBeenCalledOnce();
+  });
+
+  it('should include history text parts with thoughtSignature metadata', async () => {
+    mockSystemOne.mockResolvedValue(makeJevResponse('simple', 0.95));
+    mockContext = {
+      ...mockContext,
+      history: [
+        {
+          role: 'user',
+          parts: [
+            { text: 'earlier question', thoughtSignature: 'opaque-signature' },
+          ],
+        },
+      ],
+    };
+
+    const decision = await strategy.route(
+      mockContext,
+      mockConfig,
+      mockBaseLlmClient,
+      mockLocalLiteRtLmClient,
+    );
+
+    expect(decision).not.toBeNull();
+    expect(mockSystemOne).toHaveBeenCalledOnce();
+    expect(mockSystemOne.mock.calls[0][0].state).toContain('earlier question');
+  });
+
+  it('should decline when the request contains thought-marked text', async () => {
+    mockContext = {
+      ...mockContext,
+      request: [{ text: 'internal reasoning', thought: true }],
+    };
+
+    const decision = await strategy.route(
+      mockContext,
+      mockConfig,
+      mockBaseLlmClient,
+      mockLocalLiteRtLmClient,
+    );
+
+    expect(decision).toBeNull();
+    expect(mockSystemOne).not.toHaveBeenCalled();
+  });
+
   it('should decline when recent history contains non-text content', async () => {
     mockContext = {
       ...mockContext,
