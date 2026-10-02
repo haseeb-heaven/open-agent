@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { writeFileSync, mkdirSync } from 'node:fs';
+import { writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { GEMINI_DIR, TestRig, checkModelOutputContent } from './test-helper.js';
@@ -22,6 +22,10 @@ describe('Plan Mode', () => {
     await rig.setup(
       'should allow read-only tools but deny write tools in plan mode',
       {
+        fakeResponsesPath: join(
+          import.meta.dirname,
+          'plan-mode-offline.read-only-write-denied.responses',
+        ),
         settings: {
           general: {
             plan: { enabled: true },
@@ -41,6 +45,7 @@ describe('Plan Mode', () => {
     const result = await rig.run({
       approvalMode: 'plan',
       args: 'Please list the files in the current directory, and then attempt to create a new file named "denied.txt" using a shell command.',
+      env: { GEMINI_API_KEY: 'offline-fixture-key' },
     });
 
     const toolLogs = rig.readToolLogs();
@@ -55,6 +60,7 @@ describe('Plan Mode', () => {
       shellLog,
       'Expected run_shell_command to be blocked (not even called)',
     ).toBeUndefined();
+    expect(existsSync(join(rig.testDir!, 'denied.txt'))).toBe(false);
 
     checkModelOutputContent(result, {
       expectedContent: ['Plan Mode', 'read-only'],
@@ -68,6 +74,10 @@ describe('Plan Mode', () => {
       'should allow write_file to the plans directory in plan mode';
 
     await rig.setup(testName, {
+      fakeResponsesPath: join(
+        import.meta.dirname,
+        'plan-mode-offline.plans-dir-write.responses',
+      ),
       settings: {
         tools: {
           core: ['write_file', 'read_file', 'list_directory'],
@@ -85,6 +95,7 @@ describe('Plan Mode', () => {
         'Create a file called plan.md in the plans directory with the ' +
         'content "# Plan". Treat this as a Directive and write the file ' +
         'immediately without proposing strategy or asking for confirmation.',
+      env: { GEMINI_API_KEY: 'offline-fixture-key' },
     });
 
     const toolLogs = rig.readToolLogs();
@@ -121,6 +132,10 @@ describe('Plan Mode', () => {
       'should deny write_file to non-plans directory in plan mode';
 
     await rig.setup(testName, {
+      fakeResponsesPath: join(
+        import.meta.dirname,
+        'plan-mode-offline.outside-plans-dir-denied.responses',
+      ),
       settings: {
         tools: {
           core: ['write_file', 'read_file', 'list_directory'],
@@ -135,6 +150,7 @@ describe('Plan Mode', () => {
     await rig.run({
       approvalMode: 'plan',
       args: 'Attempt to create a file named "hello.txt" in the current directory. Do not create a plan file, try to write hello.txt directly.',
+      env: { GEMINI_API_KEY: 'offline-fixture-key' },
     });
 
     const toolLogs = rig.readToolLogs();
@@ -144,16 +160,16 @@ describe('Plan Mode', () => {
         l.toolRequest.args.includes('hello.txt'),
     );
 
-    if (writeLog) {
-      expect(
-        writeLog.toolRequest.success,
-        'Expected write_file to non-plans dir to fail',
-      ).toBe(false);
-    }
+    expect(writeLog, 'Expected write_file to be attempted').toBeDefined();
+    expect(writeLog?.toolRequest.success).toBe(false);
   });
 
   it('should be able to enter plan mode from default mode', async () => {
     await rig.setup('should be able to enter plan mode from default mode', {
+      fakeResponsesPath: join(
+        import.meta.dirname,
+        'plan-mode-offline.enter-from-default.responses',
+      ),
       settings: {
         general: {
           plan: { enabled: true },
@@ -168,6 +184,7 @@ describe('Plan Mode', () => {
     await rig.run({
       approvalMode: 'default',
       args: 'I want to perform a complex refactoring. Please enter plan mode so we can design it first.',
+      env: { GEMINI_API_KEY: 'offline-fixture-key' },
     });
 
     const toolLogs = rig.readToolLogs();
@@ -184,6 +201,10 @@ describe('Plan Mode', () => {
       'should allow write_file to the plans directory in plan mode even without a session ID';
 
     await rig.setup(testName, {
+      fakeResponsesPath: join(
+        import.meta.dirname,
+        'plan-mode-offline.plans-dir-write-no-session.responses',
+      ),
       settings: {
         tools: {
           core: ['write_file', 'read_file', 'list_directory'],
@@ -202,6 +223,7 @@ describe('Plan Mode', () => {
         'with the content "# Plan". Treat this as a Directive and write ' +
         'the file immediately without proposing strategy or asking for ' +
         'confirmation.',
+      env: { GEMINI_API_KEY: 'offline-fixture-key' },
     });
 
     const toolLogs = rig.readToolLogs();

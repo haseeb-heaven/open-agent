@@ -29,12 +29,14 @@ describe('resume-repro', () => {
     // 1. First run to create a session
     await rig.run({
       args: 'hello',
+      env: { GEMINI_API_KEY: 'offline-fixture-key' },
     });
 
     // 2. Second run with --resume latest
     // This should NOT fail with "Storage must be initialized before use"
     const result = await rig.run({
       args: ['--resume', 'latest', 'continue'],
+      env: { GEMINI_API_KEY: 'offline-fixture-key' },
     });
 
     expect(result).toContain('Session started');

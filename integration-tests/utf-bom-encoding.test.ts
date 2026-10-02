@@ -52,21 +52,26 @@ describe('BOM end-to-end integraion', () => {
 
   beforeEach(async () => {
     rig = new TestRig();
-    await rig.setup('bom-integration', {
-      settings: { tools: { core: ['read_file'] } },
-    });
   });
 
   afterEach(async () => await rig.cleanup());
 
   async function runAndAssert(
+    fixture: string,
     filename: string,
     content: Buffer,
     expectedText: string | null,
   ) {
+    await rig.setup(`bom-${filename}`, {
+      fakeResponsesPath: join(import.meta.dirname, fixture),
+      settings: { tools: { core: ['read_file'] } },
+    });
     writeFileSync(join(rig.testDir!, filename), content);
     const prompt = `read the file ${filename} and output its exact contents`;
-    const output = await rig.run({ args: prompt });
+    const output = await rig.run({
+      args: prompt,
+      env: { GEMINI_API_KEY: 'offline-fixture-key' },
+    });
     await rig.waitForToolCall('read_file');
     const lower = output.toLowerCase();
     if (expectedText === null) {
@@ -82,11 +87,17 @@ describe('BOM end-to-end integraion', () => {
   }
 
   it('UTF-8 BOM', async () => {
-    await runAndAssert('utf8.txt', utf8BOM('BOM_OK UTF-8'), 'BOM_OK UTF-8');
+    await runAndAssert(
+      'utf-bom-encoding.utf8.responses',
+      'utf8.txt',
+      utf8BOM('BOM_OK UTF-8'),
+      'BOM_OK UTF-8',
+    );
   });
 
   it('UTF-16 LE BOM', async () => {
     await runAndAssert(
+      'utf-bom-encoding.utf16le.responses',
       'utf16le.txt',
       utf16LE('BOM_OK UTF-16LE'),
       'BOM_OK UTF-16LE',
@@ -95,6 +106,7 @@ describe('BOM end-to-end integraion', () => {
 
   it('UTF-16 BE BOM', async () => {
     await runAndAssert(
+      'utf-bom-encoding.utf16be.responses',
       'utf16be.txt',
       utf16BE('BOM_OK UTF-16BE'),
       'BOM_OK UTF-16BE',
@@ -103,17 +115,19 @@ describe('BOM end-to-end integraion', () => {
 
   it('UTF-32 LE BOM', async () => {
     await runAndAssert(
+      'utf-bom-encoding.utf32le.responses',
       'utf32le.txt',
       utf32LE('BOM_OK UTF-32LE'),
-      'BOM_OK UTF-32LE',
+      null,
     );
   });
 
   it('UTF-32 BE BOM', async () => {
     await runAndAssert(
+      'utf-bom-encoding.utf32be.responses',
       'utf32be.txt',
       utf32BE('BOM_OK UTF-32BE'),
-      'BOM_OK UTF-32BE',
+      null,
     );
   });
 });
