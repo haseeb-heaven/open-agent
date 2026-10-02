@@ -364,10 +364,16 @@ describe('sandbox', () => {
           '--env',
           `SANDBOX=${containerName}`,
           '--env',
-          'JEV_API_KEY=test-jev-key',
+          'JEV_API_KEY',
         ]),
         expect.objectContaining({ stdio: 'inherit' }),
       );
+      expect(
+        vi
+          .mocked(spawn)
+          .mock.calls.flatMap(([, args]) => args ?? [])
+          .join(' '),
+      ).not.toContain('test-jev-key');
     });
 
     it('should preserve the integration-test prefix for random container names', async () => {
@@ -961,18 +967,18 @@ describe('sandbox', () => {
 
         expect(spawn).toHaveBeenCalledWith(
           'lxc',
-          expect.arrayContaining([
-            'exec',
-            'gemini-sandbox',
-            '--env',
-            'JEV_API_KEY=test-jev-key',
-            '--cwd',
-          ]),
+          expect.arrayContaining(['exec', 'gemini-sandbox', '--cwd']),
           expect.objectContaining({ stdio: 'inherit' }),
         );
         expect(
           vi.mocked(debugLogger.log).mock.calls.flat().join(' '),
         ).not.toContain('test-jev-key');
+        expect(
+          vi
+            .mocked(spawn)
+            .mock.calls.flatMap(([, args]) => args ?? [])
+            .join(' '),
+        ).not.toContain('JEV_API_KEY');
       });
 
       it('should throw FatalSandboxError if lxc list fails', async () => {

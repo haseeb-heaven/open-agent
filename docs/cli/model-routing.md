@@ -46,6 +46,11 @@ classification. Earlier conversation turns, tool output, and attachment data
 remain local; requests containing non-text parts fall through to the standard
 classifier chain instead of being sent to Jev.
 
+Docker and Podman sandboxes inherit `JEV_API_KEY` by variable name. Automatic
+forwarding is disabled for LXC sandboxes because the LXC CLI requires the key's
+value in its process arguments; Jev therefore falls through to the standard
+classifier chain in LXC mode.
+
 When configured, the Jev classifier runs early in the routing chain (before the
 generic LLM classifier). If Jev reports a confidence below the acceptance
 threshold, times out, or is otherwise unavailable, routing automatically falls
