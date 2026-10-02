@@ -30,6 +30,7 @@ import os from 'node:os';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import cliPkgJson from '../packages/cli/package.json' with { type: 'json' };
+import corePkgJson from '../packages/core/package.json' with { type: 'json' };
 
 const argv = yargs(hideBin(process.argv))
   .option('s', {
@@ -107,16 +108,20 @@ execSync(
   { stdio: 'ignore' },
 );
 
-const packageVersion = JSON.parse(
-  readFileSync(join(process.cwd(), 'package.json'), 'utf-8'),
-).version;
-
 chmodSync(
-  join(cliPackageDir, 'dist', `google-gemini-cli-${packageVersion}.tgz`),
+  join(
+    cliPackageDir,
+    'dist',
+    `${cliPkgJson.name.replace('/', '-')}-${cliPkgJson.version}.tgz`,
+  ),
   0o755,
 );
 chmodSync(
-  join(corePackageDir, 'dist', `google-gemini-cli-core-${packageVersion}.tgz`),
+  join(
+    corePackageDir,
+    'dist',
+    `${corePkgJson.name.replace(/^@/, '').replace('/', '-')}-${corePkgJson.version}.tgz`,
+  ),
   0o755,
 );
 
