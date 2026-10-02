@@ -1059,7 +1059,7 @@ async function start_lxc_sandbox(
       ...finalEntrypoint,
     ];
 
-    debugLogger.log(`lxc exec args: ${args.join(' ')}`);
+    debugLogger.log(`starting lxc sandbox process for ${containerName}`);
 
     process.stdin.pause();
     const sandboxProcess = spawn('lxc', args, {

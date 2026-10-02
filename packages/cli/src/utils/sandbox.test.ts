@@ -13,6 +13,7 @@ import { randomBytes } from 'node:crypto';
 import { start_sandbox } from './sandbox.js';
 import {
   FatalSandboxError,
+  debugLogger,
   homedir,
   type SandboxConfig,
 } from '@open-agent/core';
@@ -969,6 +970,9 @@ describe('sandbox', () => {
           ]),
           expect.objectContaining({ stdio: 'inherit' }),
         );
+        expect(
+          vi.mocked(debugLogger.log).mock.calls.flat().join(' '),
+        ).not.toContain('test-jev-key');
       });
 
       it('should throw FatalSandboxError if lxc list fails', async () => {
