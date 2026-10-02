@@ -14,17 +14,10 @@ import type {
 import { resolveClassifierModel } from '../../config/models.js';
 import { createUserContent, type Content, type Part } from '@google/genai';
 import type { Config } from '../../config/config.js';
-import {
-  isFunctionCall,
-  isFunctionResponse,
-} from '../../utils/messageInspectors.js';
+import { isFunctionResponse } from '../../utils/messageInspectors.js';
 import { debugLogger } from '../../utils/debugLogger.js';
 import { normalizeModelId } from '../../utils/modelUtils.js';
 import type { LocalLiteRtLmClient } from '../../core/localLiteRtLmClient.js';
-
-// The number of recent history turns to provide to the router for context.
-const HISTORY_TURNS_FOR_CONTEXT = 4;
-const HISTORY_SEARCH_WINDOW = 20;
 
 const FLASH_MODEL = 'flash';
 const PRO_MODEL = 'pro';
@@ -63,7 +56,7 @@ const COMPLEXITY_CRITERIA = {
 type JevComplexity = keyof typeof COMPLEXITY_CRITERIA;
 
 const COMPLEXITY_QUESTION =
-  'Analyze the chat history and the current user request, then classify the complexity of the task.';
+  'Analyze the current user request and classify its complexity.';
 
 /**
  * Maps a Jev complexity choice to a flash/pro model alias.
@@ -96,33 +89,16 @@ export class JevClassifierStrategy implements RoutingStrategy {
   readonly name = 'jev-classifier';
 
   /**
-   * Builds the textual state evaluated by Jev from the recent, tool-free
-   * portion of the chat history plus the current request.
+   * Builds the textual state evaluated by Jev from the current request only.
    */
-  private buildState(turns: Content[]): string {
-    const formattedHistory = turns
-      .slice(0, -1)
-      .map((turn) =>
-        turn.parts
-          ? turn.parts
-              .map((part) => part.text)
-              .filter(Boolean)
-              .join('\n')
-          : '',
-      )
-      .filter(Boolean)
-      .join('\n\n');
-
-    const lastTurn = turns.at(-1);
+  private buildState(request: Content): string {
     const userRequest =
-      lastTurn?.parts
+      request.parts
         ?.map((part: Part) => part.text)
         .filter(Boolean)
         .join('\n\n') ?? '';
 
-    return formattedHistory
-      ? `Chat History:\n${formattedHistory}\n\nCurrent Request:\n${userRequest}`
-      : `Current Request:\n${userRequest}`;
+    return `Current Request:\n${userRequest}`;
   }
 
   async route(
@@ -138,44 +114,29 @@ export class JevClassifierStrategy implements RoutingStrategy {
 
     const startTime = Date.now();
     try {
-      // Bypass the classifier if the request is a function response. Tool
-      // turns are pruned from history, so there is no meaningful request to
-      // classify and the payload would be invalid on its own.
-      if (isFunctionResponse(createUserContent(context.request))) {
+      const request = createUserContent(context.request);
+      if (isFunctionResponse(request)) {
         debugLogger.log(
           '[Routing] Bypassing JevClassifier: request is FunctionResponse.',
         );
         return null;
       }
 
-      const historySlice = context.history.slice(-HISTORY_SEARCH_WINDOW);
-
-      // Filter out tool-related turns.
-      const cleanHistory = historySlice.filter(
-        (content) => !isFunctionCall(content) && !isFunctionResponse(content),
-      );
-
-      // Take the last N turns from the *cleaned* history.
-      const finalHistory = cleanHistory.slice(-HISTORY_TURNS_FOR_CONTEXT);
-
-      const turns = [...finalHistory, createUserContent(context.request)];
       if (
-        turns.some((turn) =>
-          turn.parts?.some(
-            (part) =>
-              typeof part.text !== 'string' ||
-              ('thoughtSignature' in part &&
-                typeof part.thoughtSignature !== 'string') ||
-              Object.keys(part).some(
-                (key) => key !== 'text' && key !== 'thoughtSignature',
-              ),
-          ),
+        request.parts?.some(
+          (part) =>
+            typeof part.text !== 'string' ||
+            ('thoughtSignature' in part &&
+              typeof part.thoughtSignature !== 'string') ||
+            Object.keys(part).some(
+              (key) => key !== 'text' && key !== 'thoughtSignature',
+            ),
         )
       ) {
         return null;
       }
 
-      const state = this.buildState(turns);
+      const state = this.buildState(request);
 
       const client = new TypeSafeClient({
         apiKey,

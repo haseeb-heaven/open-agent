@@ -41,6 +41,11 @@ CLI:
 export JEV_API_KEY=<your-typesafe-api-key>
 ```
 
+When enabled, Jev receives only the text from the current request for
+classification. Earlier conversation turns, tool output, and attachment data
+remain local; requests containing non-text parts fall through to the standard
+classifier chain instead of being sent to Jev.
+
 When configured, the Jev classifier runs early in the routing chain (before the
 generic LLM classifier). If Jev reports a confidence below the acceptance
 threshold, times out, or is otherwise unavailable, routing automatically falls

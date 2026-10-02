@@ -280,7 +280,7 @@ describe('JevClassifierStrategy', () => {
     expect(decision).toBeNull();
   });
 
-  it('should include recent tool-free history in the evaluated state', async () => {
+  it('should send only current request text when history is present', async () => {
     mockSystemOne.mockResolvedValue(makeJevResponse('simple', 0.95));
     mockContext = {
       ...mockContext,
@@ -302,8 +302,8 @@ describe('JevClassifierStrategy', () => {
     );
 
     const state = mockSystemOne.mock.calls[0][0].state as string;
-    expect(state).toContain('first question');
-    expect(state).toContain('first answer');
+    expect(state).not.toContain('first question');
+    expect(state).not.toContain('first answer');
     expect(state).toContain('simple task');
     expect(state).not.toContain('functionCall');
   });
@@ -373,7 +373,7 @@ describe('JevClassifierStrategy', () => {
     expect(mockSystemOne).toHaveBeenCalledOnce();
   });
 
-  it('should include history text parts with thoughtSignature metadata', async () => {
+  it('should not send prior-turn text with thoughtSignature metadata', async () => {
     mockSystemOne.mockResolvedValue(makeJevResponse('simple', 0.95));
     mockContext = {
       ...mockContext,
@@ -396,7 +396,9 @@ describe('JevClassifierStrategy', () => {
 
     expect(decision).not.toBeNull();
     expect(mockSystemOne).toHaveBeenCalledOnce();
-    expect(mockSystemOne.mock.calls[0][0].state).toContain('earlier question');
+    expect(mockSystemOne.mock.calls[0][0].state).not.toContain(
+      'earlier question',
+    );
   });
 
   it('should decline when the request contains thought-marked text', async () => {
@@ -416,11 +418,13 @@ describe('JevClassifierStrategy', () => {
     expect(mockSystemOne).not.toHaveBeenCalled();
   });
 
-  it('should decline when recent history contains non-text content', async () => {
+  it('should classify the current request without sending history media', async () => {
+    mockSystemOne.mockResolvedValue(makeJevResponse('simple', 0.95));
     mockContext = {
       ...mockContext,
       history: [
         createUserContent([
+          { text: 'prior turn' },
           {
             fileData: {
               fileUri: 'gs://test/document.pdf',
@@ -438,7 +442,11 @@ describe('JevClassifierStrategy', () => {
       mockLocalLiteRtLmClient,
     );
 
-    expect(decision).toBeNull();
-    expect(mockSystemOne).not.toHaveBeenCalled();
+    expect(decision).not.toBeNull();
+    expect(mockSystemOne).toHaveBeenCalledOnce();
+    const state = mockSystemOne.mock.calls[0][0].state as string;
+    expect(state).toContain('simple task');
+    expect(state).not.toContain('prior turn');
+    expect(state).not.toContain('document.pdf');
   });
 });
