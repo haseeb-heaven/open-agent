@@ -2109,9 +2109,14 @@ describe('Settings Loading and Merging', () => {
     function setup({
       isFolderTrustEnabled = true,
       isWorkspaceTrustedValue = true as boolean | undefined,
+      useCanonicalUserEnvFile = false,
     }) {
       delete process.env['GEMINI_API_KEY']; // reset
       delete process.env['TESTTEST']; // reset
+      vi.stubEnv('JEV_API_KEY', undefined);
+      const userEnvPath = path.resolve(
+        path.join(osActual.homedir(), '.openagent', '.env'),
+      );
       const geminiEnvPath = path.resolve(
         path.join(MOCK_WORKSPACE_DIR, GEMINI_DIR, '.env'),
       );
@@ -2127,6 +2132,7 @@ describe('Settings Loading and Merging', () => {
         const normalizedP = path.resolve(p.toString());
         return [
           path.resolve(USER_SETTINGS_PATH),
+          ...(useCanonicalUserEnvFile ? [userEnvPath] : []),
           geminiEnvPath,
           workspaceEnvPath,
         ].includes(normalizedP);
@@ -2149,8 +2155,12 @@ describe('Settings Loading and Merging', () => {
           const normalizedP = path.resolve(p.toString());
           if (normalizedP === path.resolve(USER_SETTINGS_PATH))
             return JSON.stringify(userSettingsContent);
-          if (normalizedP === geminiEnvPath || normalizedP === workspaceEnvPath)
-            return 'TESTTEST=1234\nGEMINI_API_KEY=test-key';
+          if (
+            normalizedP === userEnvPath ||
+            normalizedP === geminiEnvPath ||
+            normalizedP === workspaceEnvPath
+          )
+            return 'TESTTEST=1234\nGEMINI_API_KEY=test-key\nJEV_API_KEY=jev-test-key';
           return '{}';
         },
       );
@@ -2188,6 +2198,21 @@ describe('Settings Loading and Merging', () => {
 
       expect(process.env['TESTTEST']).not.toEqual('1234');
       expect(process.env['GEMINI_API_KEY']).toEqual('test-key');
+    });
+
+    it('loads JEV_API_KEY from the canonical user env in an untrusted workspace', () => {
+      setup({
+        isFolderTrustEnabled: true,
+        isWorkspaceTrustedValue: false,
+        useCanonicalUserEnvFile: true,
+      });
+      const settings = {
+        security: { folderTrust: { enabled: true } },
+        tools: { sandbox: false },
+      } as Settings;
+      loadEnvironment(settings, MOCK_WORKSPACE_DIR, isWorkspaceTrusted);
+
+      expect(process.env['JEV_API_KEY']).toEqual('jev-test-key');
     });
 
     it('does not load env files when trust is undefined and sandboxed', () => {

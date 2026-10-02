@@ -293,7 +293,7 @@ describe('sandbox', () => {
     });
 
     it('should handle Docker execution', async () => {
-      process.env['JEV_API_KEY'] = 'test-jev-key';
+      vi.stubEnv('JEV_API_KEY', 'test-jev-key');
       const config: SandboxConfig = createMockSandboxConfig({
         command: 'docker',
         image: 'open-agent-sandbox',
@@ -939,7 +939,7 @@ describe('sandbox', () => {
 
       it('should run lxc exec with correct args for a running container', async () => {
         process.env['TEST_LXC_LIST_OUTPUT'] = LXC_RUNNING;
-        process.env['JEV_API_KEY'] = 'test-jev-key';
+        vi.stubEnv('JEV_API_KEY', 'test-jev-key');
         const config: SandboxConfig = createMockSandboxConfig({
           command: 'lxc',
           image: 'gemini-sandbox',
