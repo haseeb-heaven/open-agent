@@ -13,16 +13,16 @@ This document lists all supported models in **OpenAgent**. The catalog lives in 
 - `gpt-4` -> `gpt-4.1`, `gpt-3.5-turbo` -> `gpt-4o-mini`, `o1-preview` -> `o1`.
 
 ## Gemini stable-first (2026)
-- `gemini-2.5-pro`, `gemini-2.5-flash`, `gemini-2.5-flash-lite`.
+- `gemini-3.8-flash`, `gemini-3.1-flash-lite`, `gemini-2.5-pro`, `gemini-2.5-flash`, `gemini-2.5-flash-lite`.
 
 ## Gemini preview (optional)
-- `gemini-3.1-pro-preview`, `gemini-3-flash-preview`, `gemini-3.1-flash-lite-preview`.
+- `gemini-3.1-pro-preview`, `gemini-3-flash-preview`.
 
 ## Gemini legacy aliases
 - `gemini-pro`, `gemini-1.5-pro`, `gemini-1.5-flash` are remapped to Gemini 2.5 stable models.
 
 ## Anthropic stable-first (2026)
-- `claude-sonnet-4-6`, `claude-opus-4-6`, `claude-haiku-4-5`.
+- `claude-opus-5`, `claude-fable-5-1`, `claude-fable-5`, `claude-sonnet-5`, `claude-sonnet-4-6`, `claude-opus-4-8`, `claude-opus-4-6`, `claude-haiku-4-5`. Opus 5 and Fable 5.1 are recommended for agentic tasks.
 
 ## Anthropic legacy aliases
 - `claude-2`, `claude-2.1`, `claude-3-sonnet`, `claude-3-5-sonnet`, `claude-3-7-sonnet` -> `claude-sonnet-4-6`.
