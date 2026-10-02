@@ -2191,7 +2191,7 @@ their corresponding top-level category object in your `settings.json` file.
 - **`experimental.gemmaModelRouter.binaryPath`** (string):
 
   - **Description:** Custom path to the LiteRT-LM binary. Leave empty to use the
-    default location (~/.openagent/bin/litert/).
+    default location (~/.gemini/bin/litert/).
   - **Default:** `""`
   - **Requires restart:** Yes
 
