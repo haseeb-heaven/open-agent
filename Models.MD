@@ -95,4 +95,4 @@ Legend: ✅ supported · ⚠️ depends on the concrete backing model · ❌ not
 - `--free` — prefer the free catalog rotation; local models are the final fallback of the chain.
 - `--byok` / `/byok` — add provider API keys to `.env`; newly available models are shown immediately.
 
-Last verified model baseline: **April 5, 2026**.
+Provider-catalog updates last verified: **October 2, 2026**, against the [Gemini model catalog](https://ai.google.dev/gemini-api/docs/models) and [Anthropic model overview](https://docs.anthropic.com/en/docs/about-claude/models/overview).
