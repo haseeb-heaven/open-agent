@@ -141,19 +141,36 @@ export class JevClassifierStrategy implements RoutingStrategy {
       const client = new TypeSafeClient({
         apiKey,
         logLevel: 'warn',
-        timeout: JEV_REQUEST_TIMEOUT_MS,
+        timeout: JEV_REQUEST_TIMEOUT_MS * 2,
         retry: { maxRetries: 0 },
       });
 
-      const response = await client.systemOne(
-        {
-          state,
-          questions: {
-            complexity: choice(COMPLEXITY_QUESTION, COMPLEXITY_CRITERIA),
+      const abortController = new AbortController();
+      const abortForContext = () => abortController.abort();
+      if (context.signal?.aborted) {
+        abortForContext();
+      } else {
+        context.signal?.addEventListener('abort', abortForContext, {
+          once: true,
+        });
+      }
+      const timeout = setTimeout(abortForContext, JEV_REQUEST_TIMEOUT_MS);
+
+      let response;
+      try {
+        response = await client.systemOne(
+          {
+            state,
+            questions: {
+              complexity: choice(COMPLEXITY_QUESTION, COMPLEXITY_CRITERIA),
+            },
           },
-        },
-        { signal: context.signal },
-      );
+          { signal: abortController.signal },
+        );
+      } finally {
+        clearTimeout(timeout);
+        context.signal?.removeEventListener('abort', abortForContext);
+      }
 
       const answer = response.answers.complexity;
       const latencyMs = Date.now() - startTime;

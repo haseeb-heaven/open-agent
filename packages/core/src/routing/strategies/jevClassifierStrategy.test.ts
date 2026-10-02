@@ -81,6 +81,7 @@ describe('JevClassifierStrategy', () => {
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     vi.unstubAllEnvs();
   });
 
@@ -247,6 +248,95 @@ describe('JevClassifierStrategy', () => {
       }),
       expect.objectContaining({ signal: expect.any(AbortSignal) }),
     );
+  });
+
+  it('should give Jev time beyond the caller-owned timeout cutoff', async () => {
+    mockSystemOne.mockResolvedValue(makeJevResponse('simple', 0.95));
+
+    await strategy.route(
+      mockContext,
+      mockConfig,
+      mockBaseLlmClient,
+      mockLocalLiteRtLmClient,
+    );
+
+    const clientOptions = mockTypeSafeClient.mock.calls[0][0] as {
+      timeout: number;
+    };
+    expect(clientOptions.timeout).toBeGreaterThan(10_000);
+  });
+
+  it('should clean up its timeout and caller abort listener after success', async () => {
+    vi.useFakeTimers();
+    mockSystemOne.mockResolvedValue(makeJevResponse('simple', 0.95));
+    const removeEventListener = vi.spyOn(
+      mockContext.signal,
+      'removeEventListener',
+    );
+
+    await strategy.route(
+      mockContext,
+      mockConfig,
+      mockBaseLlmClient,
+      mockLocalLiteRtLmClient,
+    );
+
+    expect(vi.getTimerCount()).toBe(0);
+    expect(removeEventListener).toHaveBeenCalledWith(
+      'abort',
+      expect.any(Function),
+    );
+  });
+
+  it('should abort the Jev call at the caller-owned timeout and fail open', async () => {
+    vi.useFakeTimers();
+    mockSystemOne.mockImplementation(
+      (_input: unknown, { signal }: { signal: AbortSignal }) =>
+        new Promise((_, reject) => {
+          signal.addEventListener('abort', () => reject(signal.reason), {
+            once: true,
+          });
+        }),
+    );
+
+    const routePromise = strategy.route(
+      mockContext,
+      mockConfig,
+      mockBaseLlmClient,
+      mockLocalLiteRtLmClient,
+    );
+    await vi.advanceTimersByTimeAsync(10_000);
+
+    const signal = mockSystemOne.mock.calls[0][1].signal as AbortSignal;
+    expect(signal.aborted).toBe(true);
+    await expect(routePromise).resolves.toBeNull();
+  });
+
+  it('should forward caller cancellation without its abort reason', async () => {
+    const callerController = new AbortController();
+    mockContext = { ...mockContext, signal: callerController.signal };
+    mockSystemOne.mockImplementation(
+      (_input: unknown, { signal }: { signal: AbortSignal }) =>
+        new Promise((_, reject) => {
+          signal.addEventListener('abort', () => reject(signal.reason), {
+            once: true,
+          });
+        }),
+    );
+
+    const routePromise = strategy.route(
+      mockContext,
+      mockConfig,
+      mockBaseLlmClient,
+      mockLocalLiteRtLmClient,
+    );
+    const strategySignal = mockSystemOne.mock.calls[0][1].signal as AbortSignal;
+    callerController.abort('caller-specific reason');
+
+    expect(strategySignal).not.toBe(callerController.signal);
+    expect(strategySignal.aborted).toBe(true);
+    expect(strategySignal.reason).not.toBe('caller-specific reason');
+    await expect(routePromise).resolves.toBeNull();
   });
 
   it('should decline when the selected model is unavailable', async () => {
