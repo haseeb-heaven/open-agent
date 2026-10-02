@@ -1,0 +1,2 @@
+{"method": "generateContentStream", "response": [{"candidates": [{"content": {"role": "model", "parts": [{"functionCall": {"name": "list_directory", "args": {"dir_path": "."}}}]}, "finishReason": "STOP", "index": 0}]}]}
+{"method": "generateContentStream", "response": [{"candidates": [{"content": {"role": "model", "parts": [{"text": "file1.txt and subdir"}]}, "finishReason": "STOP", "index": 0}]}]}

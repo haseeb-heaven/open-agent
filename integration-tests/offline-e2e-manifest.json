@@ -1,0 +1,343 @@
+{
+  "acceptanceMinimum": 200,
+  "cases": [
+    {
+      "file": "offline-cli-contract.test.ts",
+      "name": "offline CLI argument contracts rejects multiple session restoration sources with a user-facing explanation"
+    },
+    {
+      "file": "offline-cli-contract.test.ts",
+      "name": "offline CLI argument contracts rejects positional and named prompts together"
+    },
+    {
+      "file": "offline-cli-contract.test.ts",
+      "name": "offline CLI argument contracts rejects headless and interactive prompt flags together"
+    },
+    {
+      "file": "offline-cli-contract.test.ts",
+      "name": "offline CLI argument contracts rejects the yolo shortcut alongside explicit approval mode"
+    },
+    {
+      "file": "offline-cli-contract.test.ts",
+      "name": "offline CLI argument contracts rejects the auto-mode shortcut alongside explicit approval mode"
+    },
+    {
+      "file": "offline-cli-contract.test.ts",
+      "name": "offline CLI argument contracts rejects conflicting yolo and auto-mode approval shortcuts"
+    },
+    {
+      "file": "offline-cli-contract.test.ts",
+      "name": "offline CLI argument contracts rejects invalid output format with the accepted choices"
+    },
+    {
+      "file": "offline-cli-contract.test.ts",
+      "name": "offline CLI argument contracts prints the provider model catalog and exits successfully without invoking a model"
+    },
+    {
+      "file": "offline-filesystem-boundaries.test.ts",
+      "name": "offline filesystem CLI boundaries reads a zero-byte file through the CLI"
+    },
+    {
+      "file": "offline-filesystem-boundaries.test.ts",
+      "name": "offline filesystem CLI boundaries renders UTF-8 file content from the CLI tool result"
+    },
+    {
+      "file": "offline-filesystem-boundaries.test.ts",
+      "name": "offline filesystem CLI boundaries returns a safe error when read_file targets a directory"
+    },
+    {
+      "file": "offline-tool-cycle-contract.test.ts",
+      "name": "Headless tool-cycle contract returns an unknown-tool error to the model and resumes to a final answer"
+    },
+    {
+      "file": "offline-tool-cycle-contract.test.ts",
+      "name": "Headless tool-cycle contract returns invalid tool arguments to the model and resumes to a final answer"
+    },
+    {
+      "file": "offline-provider-routing.test.ts",
+      "name": "offline Anthropic catalog routing through CLI routes catalog model claude-opus-5 to the configured loopback endpoint and renders the result"
+    },
+    {
+      "file": "offline-provider-routing.test.ts",
+      "name": "offline Anthropic catalog routing through CLI routes catalog model claude-fable-5-1 to the configured loopback endpoint and renders the result"
+    },
+    {
+      "file": "offline-provider-routing.test.ts",
+      "name": "offline Anthropic catalog routing through CLI surfaces a provider HTTP rejection instead of treating it as a model answer"
+    },
+    {
+      "file": "offline-provider-routing.test.ts",
+      "name": "offline Anthropic catalog routing through CLI fails closed before network access when the Anthropic credential is absent"
+    },
+    {
+      "file": "provider-agent-routing.test.ts",
+      "name": "provider agent routing E2E routes a real CLI tool call through the configured local OpenAI provider"
+    },
+    {
+      "file": "hooks-agent-flow.test.ts",
+      "name": "Hooks Agent Flow BeforeAgent Hooks should inject additional context via BeforeAgent hook"
+    },
+    {
+      "file": "hooks-agent-flow.test.ts",
+      "name": "Hooks Agent Flow AfterAgent Hooks should receive prompt and response in AfterAgent hook"
+    },
+    {
+      "file": "hooks-agent-flow.test.ts",
+      "name": "Hooks Agent Flow AfterAgent Hooks should process clearContext in AfterAgent hook output"
+    },
+    {
+      "file": "hooks-agent-flow.test.ts",
+      "name": "Hooks Agent Flow Multi-step Loops should fire BeforeAgent and AfterAgent exactly once per turn despite tool calls"
+    },
+    {
+      "file": "json-output.test.ts",
+      "name": "JSON output should return a valid JSON with response and stats"
+    },
+    {
+      "file": "json-output.test.ts",
+      "name": "JSON output should return a valid JSON with a session ID"
+    },
+    {
+      "file": "json-output.test.ts",
+      "name": "JSON output should return a JSON error for sd auth mismatch before running"
+    },
+    {
+      "file": "json-output.test.ts",
+      "name": "JSON output should not exit on tool errors and allow model to self-correct in JSON mode"
+    },
+    {
+      "file": "stdout-stderr-output.test.ts",
+      "name": "stdout-stderr-output should send model response to stdout and app messages to stderr"
+    },
+    {
+      "file": "stdout-stderr-output.test.ts",
+      "name": "stdout-stderr-output should handle missing file with message to stdout and error to stderr"
+    },
+    {
+      "file": "policy-headless.test.ts",
+      "name": "Policy Engine Headless Mode 'should deny ASK_USER tools by default…'"
+    },
+    {
+      "file": "policy-headless.test.ts",
+      "name": "Policy Engine Headless Mode 'should allow ASK_USER tools in headle…'"
+    },
+    {
+      "file": "policy-headless.test.ts",
+      "name": "Policy Engine Headless Mode 'should allow read-only tools by defau…'"
+    },
+    {
+      "file": "policy-headless.test.ts",
+      "name": "Policy Engine Headless Mode 'should allow specific shell commands …'"
+    },
+    {
+      "file": "policy-headless.test.ts",
+      "name": "Policy Engine Headless Mode 'should deny other shell commands in p…'"
+    },
+    {
+      "file": "mcp-resources.test.ts",
+      "name": "mcp-resources-integration should list mcp resources"
+    },
+    {
+      "file": "mcp-resources.test.ts",
+      "name": "mcp-resources-integration should read mcp resource"
+    },
+    {
+      "file": "test-mcp-support.test.ts",
+      "name": "test-mcp-support should discover and call a tool on the test server"
+    },
+    {
+      "file": "utf-bom-encoding.test.ts",
+      "name": "BOM end-to-end integraion UTF-8 BOM"
+    },
+    {
+      "file": "utf-bom-encoding.test.ts",
+      "name": "BOM end-to-end integraion UTF-16 LE BOM"
+    },
+    {
+      "file": "utf-bom-encoding.test.ts",
+      "name": "BOM end-to-end integraion UTF-16 BE BOM"
+    },
+    {
+      "file": "utf-bom-encoding.test.ts",
+      "name": "BOM end-to-end integraion UTF-32 LE BOM"
+    },
+    {
+      "file": "utf-bom-encoding.test.ts",
+      "name": "BOM end-to-end integraion UTF-32 BE BOM"
+    },
+    {
+      "file": "browser-agent-localhost.test.ts",
+      "name": "browser-agent-localhost should navigate to localhost fixture and read page content"
+    },
+    {
+      "file": "browser-agent-localhost.test.ts",
+      "name": "browser-agent-localhost should fill out and submit a form on localhost"
+    },
+    {
+      "file": "browser-agent-localhost.test.ts",
+      "name": "browser-agent-localhost should navigate through a multi-step flow"
+    },
+    {
+      "file": "browser-agent-localhost.test.ts",
+      "name": "browser-agent-localhost should handle dynamically loaded content"
+    },
+    {
+      "file": "browser-agent-localhost.test.ts",
+      "name": "browser-agent-localhost should take a screenshot of localhost page"
+    },
+    {
+      "file": "resume_repro.test.ts",
+      "name": "resume-repro should be able to resume a session without \"Storage must be initialized before use\""
+    },
+    {
+      "file": "user-policy.test.ts",
+      "name": "User Policy Regression Repro should respect policies in ~/.gemini/policies/allowed-tools.toml"
+    },
+    {
+      "file": "user-policy.test.ts",
+      "name": "User Policy Regression Repro should FAIL if policy is not present (sanity check)"
+    },
+    {
+      "file": "offline-run-shell-command.test.ts",
+      "name": "run_shell_command should be able to run a shell command"
+    },
+    {
+      "file": "offline-run-shell-command.test.ts",
+      "name": "run_shell_command should be able to run a shell command via stdin"
+    },
+    {
+      "file": "offline-run-shell-command.test.ts",
+      "name": "run_shell_command should run allowed sub-command in non-interactive mode"
+    },
+    {
+      "file": "offline-run-shell-command.test.ts",
+      "name": "run_shell_command should succeed with no parens in non-interactive mode"
+    },
+    {
+      "file": "offline-run-shell-command.test.ts",
+      "name": "run_shell_command should succeed in yolo mode"
+    },
+    {
+      "file": "offline-run-shell-command.test.ts",
+      "name": "run_shell_command should work with ShellTool alias"
+    },
+    {
+      "file": "offline-run-shell-command.test.ts",
+      "name": "run_shell_command should combine multiple --allowed-tools flags"
+    },
+    {
+      "file": "offline-run-shell-command.test.ts",
+      "name": "run_shell_command should reject commands not on the allowlist"
+    },
+    {
+      "file": "offline-run-shell-command.test.ts",
+      "name": "run_shell_command should allow all with \"ShellTool\" and other specific tools"
+    },
+    {
+      "file": "offline-run-shell-command.test.ts",
+      "name": "run_shell_command should propagate environment variables to the child process"
+    },
+    {
+      "file": "offline-run-shell-command.test.ts",
+      "name": "run_shell_command should run a platform-specific file listing command"
+    },
+    {
+      "file": "offline-run-shell-command.test.ts",
+      "name": "run_shell_command rejects invalid shell expressions"
+    },
+    {
+      "file": "offline-hooks-system.test.ts",
+      "name": "Hooks System Integration Command Hooks - Blocking Behavior should block tool execution when hook returns block decision"
+    },
+    {
+      "file": "offline-hooks-system.test.ts",
+      "name": "Hooks System Integration Command Hooks - Blocking Behavior should block tool execution and use stderr as reason when hook exits with code 2"
+    },
+    {
+      "file": "offline-hooks-system.test.ts",
+      "name": "Hooks System Integration Command Hooks - Blocking Behavior should allow tool execution when hook returns allow decision"
+    },
+    {
+      "file": "offline-hooks-system.test.ts",
+      "name": "Hooks System Integration Command Hooks - Additional Context should add additional context from AfterTool hooks"
+    },
+    {
+      "file": "offline-hooks-system.test.ts",
+      "name": "Hooks System Integration Command Hooks - Tail Tool Calls should execute a tail tool call from AfterTool hooks and replace original response"
+    },
+    {
+      "file": "offline-hooks-system-extra.test.ts",
+      "name": "Offline Hooks System extra BeforeModel hook replaces the request and returns the replacement response"
+    },
+    {
+      "file": "offline-hooks-system-extra.test.ts",
+      "name": "Offline Hooks System extra AfterModel hook replaces the generated response"
+    },
+    {
+      "file": "offline-hooks-system-extra.test.ts",
+      "name": "Offline Hooks System extra BeforeToolSelection constrains available tools to read_file"
+    },
+    {
+      "file": "offline-hooks-system-extra.test.ts",
+      "name": "Offline Hooks System extra runs sequential BeforeAgent hooks in configured order"
+    },
+    {
+      "file": "offline-hooks-system-extra.test.ts",
+      "name": "Offline Hooks System extra passes structured tool input to a BeforeTool validation hook"
+    },
+    {
+      "file": "offline-hooks-system-extra.test.ts",
+      "name": "Offline Hooks System extra keeps a failed hook from preventing the model response"
+    },
+    {
+      "file": "offline-hooks-system-extra.test.ts",
+      "name": "Offline Hooks System extra fires SessionStart with startup source and hook context"
+    },
+    {
+      "file": "offline-hooks-system-extra.test.ts",
+      "name": "Offline Hooks System extra fires SessionEnd on non-interactive exit with exit reason"
+    },
+    {
+      "file": "offline-hooks-system-extra.test.ts",
+      "name": "Offline Hooks System extra does not execute a hook disabled in settings"
+    },
+    {
+      "file": "offline-hooks-system-extra.test.ts",
+      "name": "Offline Hooks System extra overrides BeforeTool input and creates only the overridden path"
+    },
+    {
+      "file": "offline-hooks-system-extra.test.ts",
+      "name": "Offline Hooks System extra stops agent execution when BeforeTool returns a stop decision"
+    },
+    {
+      "file": "file-system.test.ts",
+      "name": "file-system should be able to write a hello world message to a file",
+      "testTitle": "should be able to write a hello world message to a file"
+    },
+    {
+      "file": "file-system.test.ts",
+      "name": "file-system should correctly handle file paths with spaces",
+      "testTitle": "should correctly handle file paths with spaces"
+    },
+    {
+      "file": "file-system.test.ts",
+      "name": "file-system should perform a read-then-write sequence",
+      "testTitle": "should perform a read-then-write sequence"
+    },
+    {
+      "file": "file-system.test.ts",
+      "name": "file-system should fail safely when trying to edit a non-existent file",
+      "testTitle": "should fail safely when trying to edit a non-existent file"
+    },
+    {
+      "file": "list_directory.test.ts",
+      "name": "list_directory should be able to list a directory",
+      "testTitle": "should be able to list a directory"
+    },
+    {
+      "file": "replace.test.ts",
+      "name": "replace should be able to replace content in a file",
+      "testTitle": "should be able to replace content in a file"
+    }
+  ]
+}

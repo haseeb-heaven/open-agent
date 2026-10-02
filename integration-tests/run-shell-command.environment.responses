@@ -1,0 +1,2 @@
+{"method":"generateContentStream","response":[{"candidates":[{"content":{"role":"model","parts":[{"functionCall":{"name":"run_shell_command","args":{"command":"node -e \"process.stdout.write(process.env.GEMINI_CLI_TEST_VAR ?? '')\""}}}]},"finishReason":"STOP","index":0}]}]}
+{"method":"generateContentStream","response":[{"candidates":[{"content":{"role":"model","parts":[{"text":"offline-shell-env-sentinel"}]},"finishReason":"STOP","index":0}]}]}

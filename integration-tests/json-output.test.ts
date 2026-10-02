@@ -29,6 +29,7 @@ describe('JSON output', () => {
     });
     const result = await rig.run({
       args: ['What is the capital of France?', '--output-format', 'json'],
+      env: { GEMINI_API_KEY: 'offline-fixture-key' },
     });
     const parsed = JSON.parse(result);
 
@@ -49,6 +50,7 @@ describe('JSON output', () => {
     });
     const result = await rig.run({
       args: ['Hello', '--output-format', 'json'],
+      env: { GEMINI_API_KEY: 'offline-fixture-key' },
     });
     const parsed = JSON.parse(result);
 
@@ -128,6 +130,7 @@ describe('JSON output', () => {
         '--output-format',
         'json',
       ],
+      env: { GEMINI_API_KEY: 'offline-fixture-key' },
     });
 
     const parsed = JSON.parse(result);

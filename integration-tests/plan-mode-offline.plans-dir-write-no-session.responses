@@ -1,0 +1,2 @@
+{"method":"generateContentStream","response":[{"candidates":[{"content":{"role":"model","parts":[{"functionCall":{"name":"write_file","args":{"file_path":".gemini/tmp/foo/plans/plan-no-session.md","content":"# Plan"}}}]},"finishReason":"STOP","index":0}]}]}
+{"method":"generateContentStream","response":[{"candidates":[{"content":{"role":"model","parts":[{"text":"Created the plan file without a session ID."}]},"finishReason":"STOP","index":0}]}]}

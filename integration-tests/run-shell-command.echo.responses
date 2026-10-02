@@ -1,0 +1,2 @@
+{"method":"generateContentStream","response":[{"candidates":[{"content":{"role":"model","parts":[{"functionCall":{"name":"run_shell_command","args":{"command":"echo hello-world"}}}]},"finishReason":"STOP","index":0}]}]}
+{"method":"generateContentStream","response":[{"candidates":[{"content":{"role":"model","parts":[{"text":"The command output was hello-world (exit code 0)."}]},"finishReason":"STOP","index":0}]}]}

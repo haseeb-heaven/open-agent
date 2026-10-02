@@ -82,7 +82,7 @@ await server.connect(transport);
 
     const output = await rig.run({
       args: 'List all available MCP resources.',
-      env: { GEMINI_API_KEY: 'dummy' },
+      env: { GEMINI_API_KEY: 'offline-fixture-key' },
     });
 
     const foundCall = await rig.waitForToolCall('list_mcp_resources');
@@ -168,7 +168,7 @@ await server.connect(transport);
 
     const output = await rig.run({
       args: 'Read the MCP resource test://resource1.',
-      env: { GEMINI_API_KEY: 'dummy' },
+      env: { GEMINI_API_KEY: 'offline-fixture-key' },
     });
 
     const foundCall = await rig.waitForToolCall('read_mcp_resource');

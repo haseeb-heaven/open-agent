@@ -72,7 +72,10 @@ describe('Hooks Agent Flow', () => {
         },
       });
 
-      await rig.run({ args: 'Hello test' });
+      await rig.run({
+        args: 'Hello test',
+        env: { GEMINI_API_KEY: 'offline-fixture-key' },
+      });
 
       // Verify hook execution and telemetry
       const hookTelemetryFound = await rig.waitForTelemetryEvent('hook_call');
@@ -136,7 +139,10 @@ describe('Hooks Agent Flow', () => {
         },
       });
 
-      await rig.run({ args: 'Hello validation' });
+      await rig.run({
+        args: 'Hello validation',
+        env: { GEMINI_API_KEY: 'offline-fixture-key' },
+      });
 
       const hookTelemetryFound = await rig.waitForTelemetryEvent('hook_call');
       expect(hookTelemetryFound).toBeTruthy();
@@ -236,7 +242,10 @@ describe('Hooks Agent Flow', () => {
         },
       });
 
-      const result = await rig.run({ args: 'Hello test' });
+      const result = await rig.run({
+        args: 'Hello test',
+        env: { GEMINI_API_KEY: 'offline-fixture-key' },
+      });
 
       const hookTelemetryFound = await rig.waitForTelemetryEvent('hook_call');
       expect(hookTelemetryFound).toBeTruthy();
@@ -316,7 +325,10 @@ describe('Hooks Agent Flow', () => {
         },
       );
 
-      await rig.run({ args: 'Do a multi-step task' });
+      await rig.run({
+        args: 'Do a multi-step task',
+        env: { GEMINI_API_KEY: 'offline-fixture-key' },
+      });
 
       const hookLogs = rig.readHookLogs();
       const beforeAgentLogs = hookLogs.filter(
