@@ -201,6 +201,14 @@ export class JevClassifierStrategy implements RoutingStrategy {
         return null;
       }
 
+      if (
+        !Number.isFinite(answer.confidence) ||
+        answer.confidence < 0 ||
+        answer.confidence > 1
+      ) {
+        return null;
+      }
+
       if (answer.confidence < JEV_CONFIDENCE_THRESHOLD) {
         debugLogger.debug(
           `[Routing] JevClassifier confidence ${answer.confidence.toFixed(2)} below threshold ${JEV_CONFIDENCE_THRESHOLD}; declining.`,

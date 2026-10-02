@@ -207,6 +207,23 @@ describe('JevClassifierStrategy', () => {
     expect(decision).toBeNull();
   });
 
+  it.each([Number.NaN, Number.POSITIVE_INFINITY, -0.1, 1.1])(
+    'should decline when confidence is invalid: %s',
+    async (confidence) => {
+      mockSystemOne.mockResolvedValue(makeJevResponse('complex', confidence));
+
+      const decision = await strategy.route(
+        mockContext,
+        mockConfig,
+        mockBaseLlmClient,
+        mockLocalLiteRtLmClient,
+      );
+
+      expect(decision).toBeNull();
+      expect(mockConfig.getGemini31Launched).not.toHaveBeenCalled();
+    },
+  );
+
   it('should pass the API key and abort signal to the Jev client', async () => {
     mockSystemOne.mockResolvedValue(makeJevResponse('simple', 0.95));
 
