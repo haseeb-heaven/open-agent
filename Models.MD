@@ -35,6 +35,7 @@ This document lists all supported models in **OpenAgent**. The catalog lives in 
 ## Gemini legacy aliases
 
 - `gemini-pro`, `gemini-1.5-pro`, `gemini-1.5-flash` are remapped to Gemini 2.5 stable models.
+- `gemini-3.1-flash-lite-preview` remains an alias for `gemini-3.1-flash-lite` for existing native configurations.
 
 ## Anthropic stable-first (2026)
 <<<<<<< HEAD

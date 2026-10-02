@@ -86,7 +86,7 @@
     }
   },
   "gemini-3.1-flash-lite-preview": {
-    "model": "gemini-3.1-flash-lite-preview",
+    "model": "gemini-3.1-flash-lite",
     "generateContentConfig": {
       "temperature": 1,
       "topP": 0.95,
