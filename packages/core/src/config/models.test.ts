@@ -687,6 +687,15 @@ describe('isActiveModel', () => {
 });
 
 describe('Gemini 3.1 Config Resolution', () => {
+  it('resolves the legacy Gemini 3.1 Flash-Lite native alias to the stable upstream model ID', () => {
+    const resolved = modelConfigService.getResolvedConfig({
+      model: 'gemini-3.1-flash-lite-preview',
+      isChatModel: true,
+    });
+
+    expect(resolved.model).toBe('gemini-3.1-flash-lite');
+  });
+
   it('PREVIEW_GEMINI_3_1_MODEL should resolve to chat-base-3 config (including thinkingLevel)', () => {
     const resolved = modelConfigService.getResolvedConfig({
       model: PREVIEW_GEMINI_3_1_MODEL,

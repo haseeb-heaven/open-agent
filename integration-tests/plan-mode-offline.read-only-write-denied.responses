@@ -1,0 +1,3 @@
+{"method":"generateContentStream","response":[{"candidates":[{"content":{"role":"model","parts":[{"functionCall":{"name":"list_directory","args":{"dir_path":"."}}}]},"finishReason":"STOP","index":0}]}]}
+{"method":"generateContentStream","response":[{"candidates":[{"content":{"role":"model","parts":[{"functionCall":{"name":"run_shell_command","args":{"command":"touch denied.txt","description":"Create denied.txt"}}}]},"finishReason":"STOP","index":0}]}]}
+{"method":"generateContentStream","response":[{"candidates":[{"content":{"role":"model","parts":[{"text":"Plan Mode permits read-only inspection and blocks shell writes."}]},"finishReason":"STOP","index":0}]}]}

@@ -6,6 +6,7 @@
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { TestRig } from './test-helper.js';
+import { join } from 'node:path';
 
 describe('replace', () => {
   let rig: TestRig;
@@ -17,6 +18,7 @@ describe('replace', () => {
   afterEach(async () => await rig.cleanup());
   it('should be able to replace content in a file', async () => {
     await rig.setup('should be able to replace content in a file', {
+      fakeResponsesPath: join(import.meta.dirname, 'replace.content.responses'),
       settings: { tools: { core: ['replace', 'read_file'] } },
     });
 
@@ -28,6 +30,7 @@ describe('replace', () => {
 
     await rig.run({
       args: `Replace 'foo' with 'bar' in the file 'file_to_replace.txt'`,
+      env: { GEMINI_API_KEY: 'offline-fixture-key' },
     });
 
     const foundToolCall = await rig.waitForToolCall('replace');

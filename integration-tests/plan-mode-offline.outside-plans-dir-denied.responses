@@ -1,0 +1,2 @@
+{"method":"generateContentStream","response":[{"candidates":[{"content":{"role":"model","parts":[{"functionCall":{"name":"write_file","args":{"file_path":"hello.txt","content":"hello"}}}]},"finishReason":"STOP","index":0}]}]}
+{"method":"generateContentStream","response":[{"candidates":[{"content":{"role":"model","parts":[{"text":"The write was denied by Plan Mode."}]},"finishReason":"STOP","index":0}]}]}

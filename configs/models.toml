@@ -140,6 +140,14 @@ max_tokens = 4096
 tier = "paid"
 notes = "Claude Fable 5 (current-gen Anthropic flagship, July 2026)"
 
+[models."claude-fable-5-1"]
+model = "claude-fable-5-1"
+provider = "anthropic"
+temperature = 0.1
+max_tokens = 4096
+tier = "paid"
+notes = "Claude Fable 5.1 (recommended for agentic tasks)"
+
 [models."claude-haiku-4-5"]
 model = "claude-haiku-4-5"
 provider = "anthropic"
@@ -161,6 +169,14 @@ temperature = 0.1
 max_tokens = 4096
 tier = "paid"
 notes = "Claude Opus 4.8 (current-gen Anthropic, July 2026)"
+
+[models."claude-opus-5"]
+model = "claude-opus-5"
+provider = "anthropic"
+temperature = 0.1
+max_tokens = 4096
+tier = "paid"
+notes = "Claude Opus 5 (recommended for agentic tasks)"
 
 [models."claude-sonnet-4-6"]
 model = "claude-sonnet-4-6"
@@ -242,8 +258,14 @@ temperature = 0.1
 max_tokens = 3072
 tier = "paid"
 
-[models."gemini-3.1-flash-lite-preview"]
-model = "gemini/gemini-3.1-flash-lite-preview"
+[models."gemini-3.1-flash-lite"]
+model = "gemini/gemini-3.1-flash-lite"
+temperature = 0.1
+max_tokens = 3072
+tier = "paid"
+
+[models."gemini-3.8-flash"]
+model = "gemini/gemini-3.8-flash"
 temperature = 0.1
 max_tokens = 3072
 tier = "paid"
