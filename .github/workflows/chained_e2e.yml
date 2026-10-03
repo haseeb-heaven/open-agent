@@ -121,7 +121,7 @@ jobs:
           allowForks: 'true'
           repo: '${{ github.repository }}'
           sha: '${{ needs.parse_run_context.outputs.sha }}'
-          token: '${{ secrets.GEMINI_CLI_ROBOT_GITHUB_PAT }}'
+          token: '${{ secrets.GITHUB_TOKEN }}'
           status: 'pending'
           context: 'E2E (Chained)'
 
