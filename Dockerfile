@@ -81,14 +81,14 @@ ENV PATH=$PATH:/usr/local/share/npm-global/bin
 USER node
 
 # install gemini-cli and clean up
-COPY --chown=node:node packages/cli/dist/google-gemini-cli-*.tgz /tmp/gemini-cli.tgz
-COPY --chown=node:node packages/core/dist/google-gemini-cli-core-*.tgz /tmp/gemini-core.tgz
+COPY --chown=node:node packages/cli/dist/open-agent-*.tgz /tmp/gemini-cli.tgz
+COPY --chown=node:node packages/core/dist/open-agent-core-*.tgz /tmp/gemini-core.tgz
 RUN npm install -g /tmp/gemini-core.tgz \
   && npm install -g /tmp/gemini-cli.tgz \
   && node -e "const fs=require('node:fs'); JSON.parse(fs.readFileSync('/usr/local/share/npm-global/lib/node_modules/open-agent/package.json','utf8')); JSON.parse(fs.readFileSync('/usr/local/share/npm-global/lib/node_modules/@open-agent/core/package.json','utf8'));" \
-  && gemini --version > /dev/null \
+  && openagent --version > /dev/null \
   && npm cache clean --force \
   && rm -f /tmp/gemini-{cli,core}.tgz
 
 # default entrypoint when none specified
-ENTRYPOINT ["/usr/local/share/npm-global/bin/gemini"]
+ENTRYPOINT ["/usr/local/share/npm-global/bin/openagent"]

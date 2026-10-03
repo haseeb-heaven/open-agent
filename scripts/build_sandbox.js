@@ -21,6 +21,7 @@ import { execSync } from 'node:child_process';
 import {
   chmodSync,
   existsSync,
+  readdirSync,
   readFileSync,
   rmSync,
   writeFileSync,
@@ -30,6 +31,7 @@ import os from 'node:os';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import cliPkgJson from '../packages/cli/package.json' with { type: 'json' };
+import corePkgJson from '../packages/core/package.json' with { type: 'json' };
 
 const argv = yargs(hideBin(process.argv))
   .option('s', {
@@ -92,31 +94,41 @@ if (!argv.s) {
 
 console.log('packing open-agent ...');
 const cliPackageDir = join('packages', 'cli');
-rmSync(join(cliPackageDir, 'dist', 'google-gemini-cli-*.tgz'), { force: true });
+for (const archive of readdirSync(join(cliPackageDir, 'dist')).filter(
+  (file) => file.startsWith('open-agent-') && file.endsWith('.tgz'),
+)) {
+  rmSync(join(cliPackageDir, 'dist', archive), { force: true });
+}
 execSync(`npm pack -w open-agent --pack-destination ./packages/cli/dist`, {
   stdio: 'ignore',
 });
 
 console.log('packing @open-agent/core ...');
 const corePackageDir = join('packages', 'core');
-rmSync(join(corePackageDir, 'dist', 'google-gemini-cli-core-*.tgz'), {
-  force: true,
-});
+for (const archive of readdirSync(join(corePackageDir, 'dist')).filter(
+  (file) => file.startsWith('open-agent-core-') && file.endsWith('.tgz'),
+)) {
+  rmSync(join(corePackageDir, 'dist', archive), { force: true });
+}
 execSync(
   `npm pack -w @open-agent/core --pack-destination ./packages/core/dist`,
   { stdio: 'ignore' },
 );
 
-const packageVersion = JSON.parse(
-  readFileSync(join(process.cwd(), 'package.json'), 'utf-8'),
-).version;
-
 chmodSync(
-  join(cliPackageDir, 'dist', `google-gemini-cli-${packageVersion}.tgz`),
+  join(
+    cliPackageDir,
+    'dist',
+    `${cliPkgJson.name.replace('/', '-')}-${cliPkgJson.version}.tgz`,
+  ),
   0o755,
 );
 chmodSync(
-  join(corePackageDir, 'dist', `google-gemini-cli-core-${packageVersion}.tgz`),
+  join(
+    corePackageDir,
+    'dist',
+    `${corePkgJson.name.replace(/^@/, '').replace('/', '-')}-${corePkgJson.version}.tgz`,
+  ),
   0o755,
 );
 
