@@ -1,6 +1,6 @@
 {
   "name": "@open-agent/test-utils",
-  "version": "4.2.0",
+  "version": "4.2.1",
   "private": true,
   "main": "src/index.ts",
   "license": "Apache-2.0",
