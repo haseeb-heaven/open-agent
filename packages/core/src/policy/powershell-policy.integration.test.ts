@@ -50,6 +50,16 @@ describe('PowerShell command safety across host platforms', () => {
     });
   });
 
+  it('asks when a destructive cmdlet follows a safe command on a new line', async () => {
+    const engine = createEngine();
+    const command =
+      'powershell -Command "Get-ChildItem .\nRemove-Item -Recurse -Force C:\\"';
+
+    await expect(check(engine, command)).resolves.toMatchObject({
+      decision: PolicyDecision.ASK_USER,
+    });
+  });
+
   it('asks for opaque encoded PowerShell commands in Auto mode', async () => {
     const engine = createEngine();
     const command = 'powershell -NoProfile -EncodedCommand SQBFAFgA';

@@ -1502,11 +1502,12 @@ const SETTINGS_SCHEMA = {
           },
           respectGeminiIgnore: {
             type: 'boolean',
-            label: 'Respect .geminiignore',
+            label: 'Respect .openagentignore',
             category: 'Context',
             requiresRestart: true,
             default: true,
-            description: 'Respect .geminiignore files when searching.',
+            description:
+              'Respect .openagentignore files when searching (and legacy .geminiignore files).',
             showInDialog: true,
           },
           enableFileWatcher: {
@@ -1547,7 +1548,7 @@ const SETTINGS_SCHEMA = {
             requiresRestart: true,
             default: [] as string[],
             description:
-              'Additional ignore file paths to respect. These files take precedence over .geminiignore and .gitignore. Files earlier in the array take precedence over files later in the array, e.g. the first file takes precedence over the second one.',
+              'Additional ignore file paths to respect. These files take precedence over .openagentignore, .geminiignore, and .gitignore. Files earlier in the array take precedence over files later in the array, e.g. the first file takes precedence over the second one.',
             showInDialog: true,
             items: { type: 'string' },
             mergeStrategy: MergeStrategy.UNION,
@@ -2412,7 +2413,7 @@ const SETTINGS_SCHEMA = {
             requiresRestart: true,
             default: '',
             description:
-              'Custom path to the LiteRT-LM binary. Leave empty to use the default location (~/.gemini/bin/litert/).',
+              'Custom path to the LiteRT-LM binary. Leave empty to use the default location (~/.openagent/bin/litert/).',
             showInDialog: false,
           },
           classifier: {

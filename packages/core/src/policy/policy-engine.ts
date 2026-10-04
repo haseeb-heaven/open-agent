@@ -106,6 +106,12 @@ function splitPowerShellScript(script: string): string[][] | null {
       if (!finishCommand()) return null;
       continue;
     }
+    if (char === '\n' || char === '\r') {
+      if (args.length > 0 || tokenStarted) {
+        if (!finishCommand()) return null;
+      }
+      continue;
+    }
     if (/[\s]/u.test(char)) {
       flushToken();
       continue;
@@ -762,6 +768,14 @@ export class PolicyEngine {
       const args = toolCall.args as { command?: string; dir_path?: string };
       command = args?.command;
       shellDirPath = args?.dir_path;
+      if (
+        command &&
+        /(?:^|\s)(?:powershell(?:\.exe)?|pwsh(?:\.exe)?)(?=\s)[^\r\n]*[\r\n]/iu.test(
+          command,
+        )
+      ) {
+        return { decision: PolicyDecision.ASK_USER };
+      }
     }
 
     // Find the first matching rule (already sorted by priority)
