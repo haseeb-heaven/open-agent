@@ -269,7 +269,9 @@ export function ProviderModelDialog({
           if (pendingKeyEntry) {
             setPendingKeyEntry(null);
             setExistingKey(undefined);
-            setNotice('Cancelled key entry. Select a model again or Esc to close.');
+            setNotice(
+              'Cancelled key entry. Select a model again or Esc to close.',
+            );
             return true;
           }
           if (key.name === 'escape') {

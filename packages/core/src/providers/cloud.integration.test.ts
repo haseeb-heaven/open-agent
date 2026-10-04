@@ -100,8 +100,8 @@ for (const { providerId, model } of LIVE_MATRIX) {
         expect((text ?? '').length).toBeGreaterThan(0);
       } catch (err) {
         if (isSoftSkipProviderError(err)) {
-          console.warn(
-            `[live soft-skip] ${providerId} complete: ${String(err).slice(0, 200)}`,
+          process.stderr.write(
+            `[live soft-skip] ${providerId} complete: ${String(err).slice(0, 200)}\n`,
           );
           return; // treat as pass/soft-skip
         }
@@ -133,8 +133,8 @@ for (const { providerId, model } of LIVE_MATRIX) {
         expect(chunks.length).toBeGreaterThan(0);
       } catch (err) {
         if (isSoftSkipProviderError(err)) {
-          console.warn(
-            `[live soft-skip] ${providerId} stream: ${String(err).slice(0, 200)}`,
+          process.stderr.write(
+            `[live soft-skip] ${providerId} stream: ${String(err).slice(0, 200)}\n`,
           );
           return;
         }

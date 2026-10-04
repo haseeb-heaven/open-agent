@@ -127,9 +127,7 @@ export class ModelRoutingContentGenerator implements ContentGenerator {
     return this.route(request.model).countTokens(request);
   }
 
-  embedContent(
-    request: EmbedContentParameters,
-  ): Promise<EmbedContentResponse> {
+  embedContent(request: EmbedContentParameters): Promise<EmbedContentResponse> {
     return this.route(request.model).embedContent(request);
   }
 }

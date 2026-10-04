@@ -97,25 +97,25 @@ available combinations.
 
 #### App Controls
 
-| Command                       | Action                                                                                                                                                                                                                                  | Keys               |
-| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
-| `app.showErrorDetails`        | Toggle the debug console for detailed error information.                                                                                                                                                                                | `F12`              |
-| `app.showFullTodos`           | Toggle the full TODO list.                                                                                                                                                                                                              | `Ctrl+T`           |
-| `app.showIdeContextDetail`    | Show IDE context details.                                                                                                                                                                                                               | `F4`               |
-| `app.toggleMarkdown`          | Toggle Markdown rendering.                                                                                                                                                                                                              | `Alt+M`            |
-| `app.toggleCopyMode`          | Toggle copy mode when in alternate buffer mode.                                                                                                                                                                                         | `F9`               |
-| `app.toggleMouseMode`         | Toggle mouse mode (scrolling and clicking).                                                                                                                                                                                             | `Ctrl+S`           |
-| `app.toggleYolo`              | Toggle YOLO (auto-approval) mode for tool calls.                                                                                                                                                                                        | `Ctrl+Y`           |
-| `app.cycleApprovalMode`       | Cycle through approval modes: default (prompt), auto_edit (auto-approve edits), auto (safe classifier — prompts only on dangerous ops), and plan (read-only). Plan mode is skipped when the agent is busy. YOLO is separate (`Ctrl+Y`). | `Shift+Tab`        |
-| `app.showMoreLines`           | Expand and collapse blocks of content when not in alternate buffer mode.                                                                                                                                                                | `Ctrl+O`           |
-| `app.expandPaste`             | Expand or collapse a paste placeholder when cursor is over placeholder.                                                                                                                                                                 | `Ctrl+O`           |
-| `app.focusShellInput`         | Move focus from OpenAgent to the active shell.                                                                                                                                                                                          | `Tab`              |
-| `app.unfocusShellInput`       | Move focus from the shell back to OpenAgent.                                                                                                                                                                                            | `Shift+Tab`        |
-| `app.clearScreen`             | Clear the terminal screen and redraw the UI.                                                                                                                                                                                            | `Ctrl+L`           |
-| `app.restart`                 | Restart the application.                                                                                                                                                                                                                | `R`<br />`Shift+R` |
-| `app.suspend`                 | Suspend the CLI and move it to the background.                                                                                                                                                                                          | `Ctrl+Z`           |
-| `app.showShellUnfocusWarning` | Show warning when trying to move focus away from shell input.                                                                                                                                                                           | `Tab`              |
-| `app.voiceModePTT`            | Hold to speak in Voice Mode.                                                                                                                                                                                                            | `Space`            |
+| Command                       | Action                                                                                                                                               | Keys               |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
+| `app.showErrorDetails`        | Toggle the debug console for detailed error information.                                                                                             | `F12`              |
+| `app.showFullTodos`           | Toggle the full TODO list.                                                                                                                           | `Ctrl+T`           |
+| `app.showIdeContextDetail`    | Show IDE context details.                                                                                                                            | `F4`               |
+| `app.toggleMarkdown`          | Toggle Markdown rendering.                                                                                                                           | `Alt+M`            |
+| `app.toggleCopyMode`          | Toggle copy mode when in alternate buffer mode.                                                                                                      | `F9`               |
+| `app.toggleMouseMode`         | Toggle mouse mode (scrolling and clicking).                                                                                                          | `Ctrl+S`           |
+| `app.toggleYolo`              | Toggle YOLO (auto-approval) mode for tool calls.                                                                                                     | `Ctrl+Y`           |
+| `app.cycleApprovalMode`       | Cycle through approval modes: default (prompt), auto (auto-approve safe actions), and plan (read-only). Plan mode is skipped when the agent is busy. | `Shift+Tab`        |
+| `app.showMoreLines`           | Expand and collapse blocks of content when not in alternate buffer mode.                                                                             | `Ctrl+O`           |
+| `app.expandPaste`             | Expand or collapse a paste placeholder when cursor is over placeholder.                                                                              | `Ctrl+O`           |
+| `app.focusShellInput`         | Move focus from Gemini to the active shell.                                                                                                          | `Tab`              |
+| `app.unfocusShellInput`       | Move focus from the shell back to Gemini.                                                                                                            | `Shift+Tab`        |
+| `app.clearScreen`             | Clear the terminal screen and redraw the UI.                                                                                                         | `Ctrl+L`           |
+| `app.restart`                 | Restart the application.                                                                                                                             | `R`<br />`Shift+R` |
+| `app.suspend`                 | Suspend the CLI and move it to the background.                                                                                                       | `Ctrl+Z`           |
+| `app.showShellUnfocusWarning` | Show warning when trying to move focus away from shell input.                                                                                        | `Tab`              |
+| `app.voiceModePTT`            | Hold to speak in Voice Mode.                                                                                                                         | `Space`            |
 
 #### Background Shell Controls
 
@@ -126,8 +126,8 @@ available combinations.
 | `background.toggle`         | Toggle current background shell visibility.                        | `Ctrl+B`    |
 | `background.toggleList`     | Toggle background shell list.                                      | `Ctrl+L`    |
 | `background.kill`           | Kill the active background shell.                                  | `Ctrl+K`    |
-| `background.unfocus`        | Move focus from background shell to OpenAgent.                     | `Shift+Tab` |
-| `background.unfocusList`    | Move focus from background shell list to OpenAgent.                | `Tab`       |
+| `background.unfocus`        | Move focus from background shell to Gemini.                        | `Shift+Tab` |
+| `background.unfocusList`    | Move focus from background shell list to Gemini.                   | `Tab`       |
 | `background.unfocusWarning` | Show warning when trying to move focus away from background shell. | `Tab`       |
 | `app.dumpFrame`             | Dump the current frame as a snapshot.                              | `F8`        |
 | `app.startRecording`        | Start recording the session.                                       | `F6`        |

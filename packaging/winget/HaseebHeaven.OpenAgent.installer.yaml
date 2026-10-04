@@ -1,9 +1,9 @@
-PackageIdentifier: HaseebHeaven.OpenAgent
-PackageVersion: <VERSION>
-InstallerType: exe
+PackageIdentifier: 'HaseebHeaven.OpenAgent'
+PackageVersion: '<VERSION>'
+InstallerType: 'exe'
 Installers:
-  - Architecture: x64
-    InstallerUrl: https://github.com/haseeb-heaven/open-agent/releases/download/v<VERSION>/openagent-win-x64.exe
-    InstallerSha256: <SHA256_HASH>
-ManifestType: installer
-ManifestVersion: 1.4.0
+  - Architecture: 'x64'
+    InstallerUrl: 'https://github.com/haseeb-heaven/open-agent/releases/download/v<VERSION>/openagent-win-x64.exe'
+    InstallerSha256: '<SHA256_HASH>'
+ManifestType: 'installer'
+ManifestVersion: '1.4.0'

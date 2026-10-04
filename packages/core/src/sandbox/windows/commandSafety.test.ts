@@ -17,6 +17,9 @@ describe('Windows commandSafety', () => {
       expect(isKnownSafeCommand(['dir'])).toBe(true);
       expect(isKnownSafeCommand(['echo', 'hello'])).toBe(true);
       expect(isKnownSafeCommand(['whoami'])).toBe(true);
+      expect(isKnownSafeCommand(['Group-Object', 'Extension'])).toBe(true);
+      expect(isKnownSafeCommand(['Sort-Object', 'Count'])).toBe(true);
+      expect(isKnownSafeCommand(['Format-Table'])).toBe(true);
     });
 
     it('should strip .exe extension for safe commands', () => {
