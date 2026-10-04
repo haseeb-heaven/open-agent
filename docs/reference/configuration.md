@@ -1690,7 +1690,8 @@ their corresponding top-level category object in your `settings.json` file.
 
 - **`context.fileFiltering.respectGeminiIgnore`** (boolean):
 
-  - **Description:** Respect .geminiignore files when searching.
+  - **Description:** Respect .openagentignore files when searching (and legacy
+    .geminiignore files).
   - **Default:** `true`
   - **Requires restart:** Yes
 
@@ -1716,9 +1717,9 @@ their corresponding top-level category object in your `settings.json` file.
 
 - **`context.fileFiltering.customIgnoreFilePaths`** (array):
   - **Description:** Additional ignore file paths to respect. These files take
-    precedence over .geminiignore and .gitignore. Files earlier in the array
-    take precedence over files later in the array, e.g. the first file takes
-    precedence over the second one.
+    precedence over .openagentignore, .geminiignore, and .gitignore. Files
+    earlier in the array take precedence over files later in the array, e.g. the
+    first file takes precedence over the second one.
   - **Default:** `[]`
   - **Requires restart:** Yes
 
@@ -2190,7 +2191,7 @@ their corresponding top-level category object in your `settings.json` file.
 - **`experimental.gemmaModelRouter.binaryPath`** (string):
 
   - **Description:** Custom path to the LiteRT-LM binary. Leave empty to use the
-    default location (~/.gemini/bin/litert/).
+    default location (~/.openagent/bin/litert/).
   - **Default:** `""`
   - **Requires restart:** Yes
 

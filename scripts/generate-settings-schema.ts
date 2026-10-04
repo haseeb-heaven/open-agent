@@ -112,9 +112,9 @@ function buildSchemaObject(schema: SettingsSchemaType): JsonSchema {
   const root: JsonSchema = {
     $schema: 'https://json-schema.org/draft/2020-12/schema',
     $id: SCHEMA_ID,
-    title: 'Gemini CLI Settings',
+    title: 'OpenAgent Settings',
     description:
-      'Configuration file schema for Gemini CLI settings. This schema enables IDE completion for `settings.json`.',
+      'Configuration file schema for OpenAgent settings. This schema enables IDE completion for `settings.json`.',
     type: 'object',
     additionalProperties: false,
     properties: {},

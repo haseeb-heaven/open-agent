@@ -101,7 +101,7 @@ for (const { providerId, model } of LIVE_MATRIX) {
       } catch (err) {
         if (isSoftSkipProviderError(err)) {
           process.stderr.write(
-            `[live soft-skip] ${providerId} complete: ${String(err).slice(0, 200)}`,
+            `[live soft-skip] ${providerId} complete: ${String(err).slice(0, 200)}\n`,
           );
           return; // treat as pass/soft-skip
         }
