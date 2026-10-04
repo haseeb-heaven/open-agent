@@ -37,9 +37,9 @@ describe('download path helpers', () => {
   });
 
   it('joins filename from URL onto directory destinations', () => {
-    expect(
-      resolveDownloadDest('https://ex.com/path/pkg.zip', 'D:/tmp/'),
-    ).toBe('D:/tmp/pkg.zip');
+    expect(resolveDownloadDest('https://ex.com/path/pkg.zip', 'D:/tmp/')).toBe(
+      'D:/tmp/pkg.zip',
+    );
     expect(
       resolveDownloadDest('https://ex.com/path/pkg.zip', 'D:/tmp/out.zip'),
     ).toBe('D:/tmp/out.zip');

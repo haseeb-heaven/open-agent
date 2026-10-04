@@ -81,6 +81,7 @@ import {
 import {
   FatalConfigError,
   GEMINI_DIR,
+  OPENAGENT_DIR,
   Storage,
   AuthType,
   type MCPServerConfig,
@@ -94,10 +95,10 @@ import {
 import { createMockSettings } from '../test-utils/settings.js';
 
 const MOCK_WORKSPACE_DIR = path.resolve(path.resolve('/mock/workspace'));
-// Use the (mocked) GEMINI_DIR for consistency
+// New workspaces persist settings under the canonical OpenAgent directory.
 const MOCK_WORKSPACE_SETTINGS_PATH = path.join(
   MOCK_WORKSPACE_DIR,
-  GEMINI_DIR,
+  OPENAGENT_DIR,
   'settings.json',
 );
 
@@ -1746,7 +1747,7 @@ describe('Settings Loading and Merging', () => {
       const mockSymlinkDir = path.resolve('/mock/symlink/to/home');
       const mockWorkspaceSettingsPath = path.join(
         mockSymlinkDir,
-        GEMINI_DIR,
+        OPENAGENT_DIR,
         'settings.json',
       );
 

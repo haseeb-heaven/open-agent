@@ -1,8 +1,8 @@
-PackageIdentifier: HaseebHeaven.OpenAgent
-PackageVersion: <VERSION>
-PackageName: OpenAgent
-Publisher: Haseeb Heaven
-License: Apache-2.0
-ShortDescription: Open-source terminal agent for natural language task execution
-ManifestType: version
-ManifestVersion: 1.4.0
+PackageIdentifier: 'HaseebHeaven.OpenAgent'
+PackageVersion: '<VERSION>'
+PackageName: 'OpenAgent'
+Publisher: 'Haseeb Heaven'
+License: 'Apache-2.0'
+ShortDescription: 'Open-source terminal agent for natural language task execution'
+ManifestType: 'version'
+ManifestVersion: '1.4.0'

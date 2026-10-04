@@ -67,9 +67,7 @@ export function writeEnvKey(
     envKey = String(envPathOrKey ?? '');
     value = envKeyOrValue;
   } else {
-    envPath = envPathOrKey?.trim()
-      ? envPathOrKey
-      : getDefaultEnvFilePath();
+    envPath = envPathOrKey?.trim() ? envPathOrKey : getDefaultEnvFilePath();
     envKey = envKeyOrValue;
     value = valueMaybe;
   }

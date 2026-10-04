@@ -1,20 +1,20 @@
-PackageIdentifier: HaseebHeaven.OpenAgent
-PackageVersion: <VERSION>
-PackageLocale: en-US
-Publisher: Haseeb Heaven
-PublisherUrl: https://github.com/haseeb-heaven
-PackageName: OpenAgent
-PackageUrl: https://github.com/haseeb-heaven/open-agent
-License: Apache-2.0
-LicenseUrl: https://github.com/haseeb-heaven/open-agent/blob/main/LICENSE
-ShortDescription: Open-source terminal agent for natural language task execution
+PackageIdentifier: 'HaseebHeaven.OpenAgent'
+PackageVersion: '<VERSION>'
+PackageLocale: 'en-US'
+Publisher: 'Haseeb Heaven'
+PublisherUrl: 'https://github.com/haseeb-heaven'
+PackageName: 'OpenAgent'
+PackageUrl: 'https://github.com/haseeb-heaven/open-agent'
+License: 'Apache-2.0'
+LicenseUrl: 'https://github.com/haseeb-heaven/open-agent/blob/main/LICENSE'
+ShortDescription: 'Open-source terminal agent for natural language task execution'
 Description: >-
   Describe a task in plain English. OpenAgent plans, uses tools, and delivers —
   with free, local, and BYOK cloud models.
 Tags:
-  - ai
-  - agent
-  - terminal
-  - cli
-ManifestType: defaultLocale
-ManifestVersion: 1.4.0
+  - 'ai'
+  - 'agent'
+  - 'terminal'
+  - 'cli'
+ManifestType: 'defaultLocale'
+ManifestVersion: '1.4.0'

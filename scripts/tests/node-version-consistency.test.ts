@@ -68,10 +68,7 @@ describe('Node.js version baseline consistency', () => {
 
   it('release workflows reference the real root .nvmrc, not a nonexistent path', () => {
     const workflowsDir = join(ROOT, '.github', 'workflows');
-    const releaseWorkflows = [
-      'release-manual.yml',
-      'release-nightly.yml',
-    ];
+    const releaseWorkflows = ['release-manual.yml', 'release-nightly.yml'];
 
     for (const file of releaseWorkflows) {
       const content = readFileSync(join(workflowsDir, file), 'utf8');

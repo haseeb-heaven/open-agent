@@ -226,8 +226,7 @@ export function AuthDialog({
         </Text>
         <Box marginTop={1}>
           <Text color={theme.text.primary}>
-            How do you want to run models? (default: free / open-source /
-            local)
+            How do you want to run models? (default: free / open-source / local)
           </Text>
         </Box>
         <Box marginTop={1}>

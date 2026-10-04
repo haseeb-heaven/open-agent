@@ -6,6 +6,7 @@
 
 import { z } from 'zod';
 import { zodToJsonSchema } from 'zod-to-json-schema';
+
 import {
   BaseDeclarativeTool,
   BaseToolInvocation,
@@ -158,7 +159,7 @@ export class SdkTool<T extends z.ZodTypeAny> extends BaseDeclarativeTool<
       definition.name,
       definition.description,
       Kind.Other,
-      zodToJsonSchema(definition.inputSchema as any) as any,
+      zodToJsonSchema(definition.inputSchema),
       messageBus,
     );
   }

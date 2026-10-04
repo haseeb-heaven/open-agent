@@ -1,17 +1,17 @@
-name: openagent
+name: 'openagent'
 version: '<VERSION>'
-summary: Open-source terminal agent
+summary: 'Open-source terminal agent'
 description: |
   Describe a task in plain English. OpenAgent plans, uses tools, and delivers —
   with free, local, and BYOK cloud models.
-grade: stable
-confinement: classic
-base: core22
+grade: 'stable'
+confinement: 'classic'
+base: 'core22'
 
 parts:
   openagent:
-    plugin: dump
-    source: .
+    plugin: 'dump'
+    source: '.'
     override-build: |
       npm ci
       npm run bundle
@@ -19,5 +19,5 @@ parts:
 
 apps:
   openagent:
-    command: node $SNAP/openagent.js
-    plugs: [network, home, dot-local-share]
+    command: 'node $SNAP/openagent.js'
+    plugs: ['network', 'home', 'dot-local-share']

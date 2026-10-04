@@ -132,13 +132,12 @@ their corresponding top-level category object in your `settings.json` file.
 - **`general.defaultApprovalMode`** (enum):
 
   - **Description:** The default approval mode for tool execution. 'default'
-    prompts for approval, 'auto_edit' auto-approves edit tools, 'auto'
-    auto-approves safe tools (prompts on dangerous commands/path escapes), and
-    'plan' is read-only mode. YOLO mode (auto-approve all actions including
-    dangerous) can only be enabled via command line (--yolo or
-    --approval-mode=yolo).
+    prompts for approval, 'auto' auto-approves safe tools (prompts on dangerous
+    commands/path escapes), and 'plan' is read-only mode. YOLO mode
+    (auto-approve all actions including dangerous) can only be enabled via
+    command line (--yolo or --approval-mode=yolo).
   - **Default:** `"default"`
-  - **Values:** `"default"`, `"auto_edit"`, `"auto"`, `"plan"`
+  - **Values:** `"default"`, `"auto"`, `"plan"`
 
 - **`general.devtools`** (boolean):
 
@@ -2115,11 +2114,18 @@ their corresponding top-level category object in your `settings.json` file.
 - **`experimental.extensionRegistries`** (array):
 
   - **Description:** Named extension marketplace sources to browse/search
-    together. Each entry is a web URL or local file path, e.g.
-    `{ "name": "OpenAgent", "uri": "https://geminicli.com/extensions.json" }`.
-    Manage these with `openagent extensions registry add|remove|list`.
+    together. Each entry is a web URL or local file path.
   - **Default:**
-    `[{ "name": "OpenAgent", "uri": "https://geminicli.com/extensions.json" }]`
+
+    ```json
+    [
+      {
+        "name": "OpenAgent",
+        "uri": "https://geminicli.com/extensions.json"
+      }
+    ]
+    ```
+
   - **Requires restart:** Yes
 
 - **`experimental.extensionReloading`** (boolean):
@@ -2184,7 +2190,7 @@ their corresponding top-level category object in your `settings.json` file.
 - **`experimental.gemmaModelRouter.binaryPath`** (string):
 
   - **Description:** Custom path to the LiteRT-LM binary. Leave empty to use the
-    default location (~/.openagent/bin/litert/).
+    default location (~/.gemini/bin/litert/).
   - **Default:** `""`
   - **Requires restart:** Yes
 
