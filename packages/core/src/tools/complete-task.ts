@@ -51,12 +51,13 @@ export class CompleteTaskTool<
     outputConfig?: OutputConfig<z.ZodTypeAny>,
   ): unknown {
     if (outputConfig) {
-      const jsonSchema = zodToJsonSchema(outputConfig.schema as any);
-      const {
-        $schema: _$schema,
-        definitions: _definitions,
-        ...schema
-      } = jsonSchema;
+      const jsonSchema: unknown = zodToJsonSchema(outputConfig.schema);
+      if (typeof jsonSchema !== 'object' || jsonSchema === null) {
+        return {};
+      }
+      const schema: Record<string, unknown> = { ...jsonSchema };
+      delete schema['$schema'];
+      delete schema['definitions'];
       return {
         type: 'object',
         properties: {

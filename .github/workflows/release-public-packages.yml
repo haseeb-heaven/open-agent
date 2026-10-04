@@ -15,7 +15,7 @@ on:
       dry_run:
         description: 'Dry run — build and pack everything but skip npm publish, docker push, and GitHub release upload'
         required: true
-        type: boolean
+        type: 'boolean'
         default: true
   push:
     tags:
@@ -24,99 +24,99 @@ on:
 jobs:
   npm-publish:
     if: "github.repository == 'haseeb-heaven/open-agent'"
-    runs-on: ubuntu-latest
+    runs-on: 'ubuntu-latest'
     permissions:
-      contents: read
+      contents: 'read'
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+      - uses: 'actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8'
+      - uses: 'actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020'
         with:
           node-version-file: '.nvmrc'
           registry-url: 'https://registry.npmjs.org'
-      - run: npm ci
-      - run: npm run bundle
-      - name: npm publish
+      - run: 'npm ci'
+      - run: 'npm run bundle'
+      - name: 'npm publish'
         if: "${{ github.event_name == 'push' || github.event.inputs.dry_run == 'false' }}"
-        run: npm publish --access public
+        run: 'npm publish --access public'
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: '${{ secrets.NPM_TOKEN }}'
 
   build-binaries:
     if: "github.repository == 'haseeb-heaven/open-agent'"
     strategy:
       matrix:
         include:
-          - os: ubuntu-latest
-            asset_name: openagent-linux-x64
-          - os: macos-latest
-            asset_name: openagent-macos-x64
-          - os: windows-latest
-            asset_name: openagent-win-x64.exe
-    runs-on: ${{ matrix.os }}
+          - os: 'ubuntu-latest'
+            asset_name: 'openagent-linux-x64'
+          - os: 'macos-latest'
+            asset_name: 'openagent-macos-x64'
+          - os: 'windows-latest'
+            asset_name: 'openagent-win-x64.exe'
+    runs-on: '${{ matrix.os }}'
     permissions:
-      contents: read
+      contents: 'read'
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+      - uses: 'actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8'
+      - uses: 'actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020'
         with:
           node-version-file: '.nvmrc'
-      - run: npm ci
-      - run: npm run bundle
-      - run: npm run build:binary
-      - name: Rename binary (non-Windows)
-        if: runner.os != 'Windows'
+      - run: 'npm ci'
+      - run: 'npm run bundle'
+      - run: 'npm run build:binary'
+      - name: 'Rename binary (non-Windows)'
+        if: "runner.os != 'Windows'"
         run: |
           arch=$(node -p "process.arch")
           cp "dist/$(node -p process.platform)-$arch/gemini" "${{ matrix.asset_name }}"
-      - name: Rename binary (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
+      - name: 'Rename binary (Windows)'
+        if: "runner.os == 'Windows'"
+        shell: 'pwsh'
         run: |
           $arch = node -p "process.arch"
           Copy-Item "dist/win32-$arch/gemini.exe" "${{ matrix.asset_name }}"
-      - uses: actions/upload-artifact@v4
+      - uses: 'actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02' # ratchet:actions/upload-artifact@v4
         with:
-          name: ${{ matrix.asset_name }}
-          path: ${{ matrix.asset_name }}
+          name: '${{ matrix.asset_name }}'
+          path: '${{ matrix.asset_name }}'
 
   github-release:
     if: "github.repository == 'haseeb-heaven/open-agent' && (github.event_name == 'push' || github.event.inputs.dry_run == 'false')"
-    needs: [build-binaries]
-    runs-on: ubuntu-latest
+    needs: ['build-binaries']
+    runs-on: 'ubuntu-latest'
     permissions:
-      contents: write
+      contents: 'write'
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: 'actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806' # ratchet:actions/download-artifact@v4
         with:
-          path: artifacts
+          path: 'artifacts'
           merge-multiple: true
-      - name: Upload binaries to the release matching this tag
-        run: gh release upload "${{ github.ref_name }}" artifacts/* --clobber
+      - name: 'Upload binaries to the release matching this tag'
+        run: 'gh release upload "${{ github.ref_name }}" artifacts/* --clobber'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
 
   docker-publish:
     if: "github.repository == 'haseeb-heaven/open-agent'"
-    runs-on: ubuntu-latest
+    runs-on: 'ubuntu-latest'
     permissions:
-      contents: read
+      contents: 'read'
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
-      - name: Determine tags
-        id: tags
+      - uses: 'actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8'
+      - name: 'Determine tags'
+        id: 'tags'
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
           echo "version=${VERSION:-dev}" >> "$GITHUB_OUTPUT"
-      - uses: docker/setup-buildx-action@v3
-      - name: Docker Hub login
+      - uses: 'docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435' # ratchet:docker/setup-buildx-action@v3
+      - name: 'Docker Hub login'
         if: "${{ github.event_name == 'push' || github.event.inputs.dry_run == 'false' }}"
-        uses: docker/login-action@v3
+        uses: 'docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1' # ratchet:docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - uses: docker/build-push-action@v5
+          username: '${{ secrets.DOCKERHUB_USERNAME }}'
+          password: '${{ secrets.DOCKERHUB_TOKEN }}'
+      - uses: 'docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25' # ratchet:docker/build-push-action@v5
         with:
-          context: .
+          context: '.'
           build-args: |
             GIT_COMMIT=${{ github.sha }}
           push: "${{ github.event_name == 'push' || github.event.inputs.dry_run == 'false' }}"

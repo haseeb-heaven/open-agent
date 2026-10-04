@@ -25,7 +25,7 @@ This is an example of an OpenAgent extension that adds a custom theme.
 
 3.  **Observe the Changes:**
 
-    After setting the theme, you should see the changes reflected in
-    OpenAgent's UI. The background will be a dark green, the primary text a lighter
-    green, and various other UI elements will display different shades of green,
-    as defined in this extension's `gemini-extension.json` file.
+    After setting the theme, you should see the changes reflected in OpenAgent's
+    UI. The background will be a dark green, the primary text a lighter green,
+    and various other UI elements will display different shades of green, as
+    defined in this extension's `gemini-extension.json` file.

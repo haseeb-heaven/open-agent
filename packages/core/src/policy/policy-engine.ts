@@ -15,6 +15,11 @@ import {
   extractStringFromParseEntry,
 } from '../utils/shell-utils.js';
 import { parse as shellParse } from 'shell-quote';
+import {
+  isCircuitBreakerCommand as isWindowsCircuitBreakerCommand,
+  isDangerousCommand as isWindowsDangerousCommand,
+  isKnownSafeCommand as isWindowsKnownSafeCommand,
+} from '../sandbox/windows/commandSafety.js';
 import { isSubpath } from '../utils/paths.js';
 import {
   PolicyDecision,
@@ -33,6 +38,88 @@ import type { CheckerRunner } from '../safety/checker-runner.js';
 import { SafetyCheckDecision } from '../safety/protocol.js';
 import { getToolAliases, AGENT_TOOL_NAME } from '../tools/tool-names.js';
 import { PARAM_ADDITIONAL_PERMISSIONS } from '../tools/definitions/base-declarations.js';
+
+/**
+ * Parse only the simple PowerShell command/pipeline syntax that the policy
+ * engine can classify without executing it. Expressions, script blocks,
+ * redirection, and invocation operators are intentionally unsupported and
+ * return null so broad safety modes fail closed instead of treating PowerShell
+ * as Bash.
+ */
+function splitPowerShellScript(script: string): string[][] | null {
+  const commands: string[][] = [];
+  let args: string[] = [];
+  let token = '';
+  let tokenStarted = false;
+  let quote: "'" | '"' | null = null;
+
+  const flushToken = () => {
+    if (!tokenStarted) return;
+    args.push(token);
+    token = '';
+    tokenStarted = false;
+  };
+
+  const finishCommand = (): boolean => {
+    flushToken();
+    if (args.length === 0) return false;
+    commands.push(args);
+    args = [];
+    return true;
+  };
+
+  for (let i = 0; i < script.length; i += 1) {
+    const char = script[i];
+    const next = script[i + 1];
+
+    if (quote === "'") {
+      if (char === "'" && next === "'") {
+        token += "'";
+        i += 1;
+      } else if (char === "'") {
+        quote = null;
+      } else {
+        token += char;
+      }
+      tokenStarted = true;
+      continue;
+    }
+
+    if (quote === '"') {
+      if (char === '"') {
+        quote = null;
+      } else if (char === '$' || char === '`') {
+        return null;
+      } else {
+        token += char;
+      }
+      tokenStarted = true;
+      continue;
+    }
+
+    if (char === "'" || char === '"') {
+      quote = char;
+      tokenStarted = true;
+      continue;
+    }
+    if (char === '|' || char === ';') {
+      if (!finishCommand()) return null;
+      continue;
+    }
+    if (/[\s]/u.test(char)) {
+      flushToken();
+      continue;
+    }
+    if ('$`&(){}<>'.includes(char)) {
+      return null;
+    }
+    token += char;
+    tokenStarted = true;
+  }
+
+  if (quote !== null || !finishCommand()) return null;
+  return commands;
+}
 import {
   MCP_TOOL_PREFIX,
   isMcpToolAnnotation,
@@ -317,7 +404,24 @@ export class PolicyEngine {
       // actual wrapped command is. Wrappers with unparseable payloads (e.g.
       // `-EncodedCommand <base64>`) aren't matched by stripShellWrapper, so
       // they still fall through to the raw dangerous-root check below.
+      const originalArgs = shellParse(command).map(extractStringFromParseEntry);
+      const executable = originalArgs[0]
+        ?.replace(/\\/g, '/')
+        .split('/')
+        .at(-1)
+        ?.replace(/\.exe$/i, '')
+        .toLowerCase();
+      const isPowerShell = executable === 'powershell' || executable === 'pwsh';
+      const hasEncodedPowerShellCommand =
+        isPowerShell &&
+        originalArgs.slice(1).some((arg) => {
+          const normalized = arg.toLowerCase();
+          return normalized === '-e' || normalized.startsWith('-enc');
+        });
+      const trimmedCommand = command.trim();
       const unwrapped = stripShellWrapper(command);
+      const hasPowerShellCommandWrapper =
+        isPowerShell && unwrapped !== trimmedCommand;
       const commandToCheck = unwrapped !== command ? unwrapped : command;
       const parsedObjArgs = shellParse(commandToCheck);
       const parsedArgs = parsedObjArgs.map(extractStringFromParseEntry);
@@ -340,6 +444,78 @@ export class PolicyEngine {
       const useBroadDangerousCheck =
         this.approvalMode === ApprovalMode.AUTO ||
         this.approvalMode === ApprovalMode.YOLO;
+
+      if (isPowerShell) {
+        if (useBroadDangerousCheck && hasEncodedPowerShellCommand) {
+          debugLogger.debug(
+            `[PolicyEngine.check] Encoded PowerShell payload cannot be checked for circuit breakers, forcing ASK_USER: ${command}`,
+          );
+          return PolicyDecision.ASK_USER;
+        }
+
+        const powerShellSegments = hasPowerShellCommandWrapper
+          ? splitPowerShellScript(commandToCheck)
+          : null;
+
+        if (
+          powerShellSegments?.some((segment) =>
+            isWindowsCircuitBreakerCommand(segment),
+          )
+        ) {
+          debugLogger.debug(
+            `[PolicyEngine.check] PowerShell command matched circuit breaker, forcing ASK_USER regardless of mode: ${command}`,
+          );
+          return PolicyDecision.ASK_USER;
+        }
+
+        if (useBroadDangerousCheck) {
+          // PowerShell cmdlets do not share the host shell's command vocabulary.
+          // AUTO must confirm opaque payloads; YOLO preserves its explicit
+          // override except for circuit-breaker commands detected above.
+          if (!powerShellSegments) {
+            debugLogger.debug(
+              `[PolicyEngine.check] PowerShell payload could not be safely parsed: ${command}`,
+            );
+            if (this.approvalMode === ApprovalMode.YOLO) {
+              debugLogger.warn(
+                `[OpenAgent] YOLO mode: executing an opaque PowerShell command without confirmation: ${command}`,
+              );
+              return decision;
+            }
+            return PolicyDecision.ASK_USER;
+          }
+
+          const unsafePowerShell = powerShellSegments.some((segment) => {
+            const root = segment[0]
+              ?.replace(/\\/g, '/')
+              .split('/')
+              .at(-1)
+              ?.replace(/\.exe$/i, '');
+            return (
+              !root ||
+              isWindowsDangerousCommand(segment, true) ||
+              !isWindowsKnownSafeCommand(segment)
+            );
+          });
+          if (unsafePowerShell) {
+            if (this.approvalMode === ApprovalMode.YOLO) {
+              debugLogger.warn(
+                `[OpenAgent] YOLO mode: executing a PowerShell command that requires confirmation: ${command}`,
+              );
+              return decision;
+            }
+            debugLogger.debug(
+              `[PolicyEngine.check] PowerShell command is dangerous or unsupported, forcing ASK_USER: ${command}`,
+            );
+            return PolicyDecision.ASK_USER;
+          }
+
+          // The Windows classifier has already checked every PowerShell segment;
+          // do not reinterpret that script through the host POSIX parser below.
+          return decision;
+        }
+      }
+
       if (
         this.sandboxManager.isDangerousCommand(
           parsedArgs,
@@ -674,26 +850,15 @@ export class PolicyEngine {
         // screened for the absolute circuit-breaker patterns (catastrophic,
         // irreversible commands). Everything else is allowed as before.
         if (!skipHeuristics && isShellCommand && command) {
-          try {
-            await initializeShellParsers();
-            const parsedObjArgs = shellParse(command);
-            const parsedArgs = parsedObjArgs.map(extractStringFromParseEntry);
-            if (this.sandboxManager.isCircuitBreakerCommand(parsedArgs)) {
-              debugLogger.debug(
-                `[PolicyEngine.check] NO MATCH in YOLO mode, but command matched circuit breaker - forcing ASK_USER: ${command}`,
-              );
-              return { decision: PolicyDecision.ASK_USER };
-            }
-            if (this.sandboxManager.isDangerousCommand(parsedArgs, true)) {
-              debugLogger.warn(
-                `[OpenAgent] YOLO mode: executing command flagged as dangerous without confirmation: ${command}`,
-              );
-              debugLogger.debug(
-                `[PolicyEngine.check] NO MATCH in YOLO mode, command evaluated as dangerous. Preserving ALLOW: ${command}`,
-              );
-            }
-          } catch {
-            // Ignore parsing errors; fall through to YOLO allow below.
+          const heuristicDecision = await this.applyShellHeuristics(
+            command,
+            PolicyDecision.ALLOW,
+          );
+          if (heuristicDecision === PolicyDecision.ASK_USER) {
+            debugLogger.debug(
+              `[PolicyEngine.check] NO MATCH in YOLO mode, command matched a circuit breaker or unsupported PowerShell payload: ${command}`,
+            );
+            return { decision: PolicyDecision.ASK_USER };
           }
         }
 

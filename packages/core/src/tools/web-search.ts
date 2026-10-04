@@ -251,7 +251,7 @@ class WebSearchToolInvocation extends BaseToolInvocation<
     const ctx = this.context;
     try {
       if (ctx && typeof ctx === 'object' && 'getModel' in ctx) {
-        const getModel = (ctx).getModel;
+        const getModel = ctx.getModel;
         if (typeof getModel === 'function') {
           return getModel.call(ctx);
         }

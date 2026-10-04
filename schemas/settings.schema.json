@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/haseeb-heaven/open-agent/main/schemas/settings.schema.json",
-  "title": "OpenAgent CLI Settings",
-  "description": "Configuration file schema for OpenAgent CLI settings. This schema enables IDE completion for `settings.json`.",
+  "title": "Gemini CLI Settings",
+  "description": "Configuration file schema for Gemini CLI settings. This schema enables IDE completion for `settings.json`.",
   "type": "object",
   "additionalProperties": false,
   "properties": {
@@ -89,11 +89,11 @@
         },
         "defaultApprovalMode": {
           "title": "Default Approval Mode",
-          "description": "The default approval mode for tool execution. 'default' prompts for approval, 'auto_edit' auto-approves edit tools, 'auto' auto-approves safe tools (prompts on dangerous commands/path escapes), and 'plan' is read-only mode. YOLO mode (auto-approve all actions including dangerous) can only be enabled via command line (--yolo or --approval-mode=yolo).",
-          "markdownDescription": "The default approval mode for tool execution. 'default' prompts for approval, 'auto_edit' auto-approves edit tools, 'auto' auto-approves safe tools (prompts on dangerous commands/path escapes), and 'plan' is read-only mode. YOLO mode (auto-approve all actions including dangerous) can only be enabled via command line (--yolo or --approval-mode=yolo).\n\n- Category: `General`\n- Requires restart: `no`\n- Default: `default`",
+          "description": "The default approval mode for tool execution. 'default' prompts for approval, 'auto' auto-approves safe tools (prompts on dangerous commands/path escapes), and 'plan' is read-only mode. YOLO mode (auto-approve all actions including dangerous) can only be enabled via command line (--yolo or --approval-mode=yolo).",
+          "markdownDescription": "The default approval mode for tool execution. 'default' prompts for approval, 'auto' auto-approves safe tools (prompts on dangerous commands/path escapes), and 'plan' is read-only mode. YOLO mode (auto-approve all actions including dangerous) can only be enabled via command line (--yolo or --approval-mode=yolo).\n\n- Category: `General`\n- Requires restart: `no`\n- Default: `default`",
           "default": "default",
           "type": "string",
-          "enum": ["default", "auto_edit", "auto", "plan"]
+          "enum": ["default", "auto", "plan"]
         },
         "devtools": {
           "title": "DevTools",
@@ -338,8 +338,8 @@
         },
         "showStatusInTitle": {
           "title": "Show Thoughts in Title",
-          "description": "Show OpenAgent model thoughts in the terminal window title during the working phase",
-          "markdownDescription": "Show OpenAgent model thoughts in the terminal window title during the working phase\n\n- Category: `UI`\n- Requires restart: `no`\n- Default: `false`",
+          "description": "Show open-agent model thoughts in the terminal window title during the working phase",
+          "markdownDescription": "Show open-agent model thoughts in the terminal window title during the working phase\n\n- Category: `UI`\n- Requires restart: `no`\n- Default: `false`",
           "default": false,
           "type": "boolean"
         },
@@ -352,8 +352,8 @@
         },
         "showHomeDirectoryWarning": {
           "title": "Show Home Directory Warning",
-          "description": "Show a warning when running OpenAgent in the home directory.",
-          "markdownDescription": "Show a warning when running OpenAgent in the home directory.\n\n- Category: `UI`\n- Requires restart: `yes`\n- Default: `true`",
+          "description": "Show a warning when running open-agent in the home directory.",
+          "markdownDescription": "Show a warning when running open-agent in the home directory.\n\n- Category: `UI`\n- Requires restart: `yes`\n- Default: `true`",
           "default": true,
           "type": "boolean"
         },
@@ -3399,10 +3399,26 @@
         },
         "extensionRegistryURI": {
           "title": "Extension Registry URI",
-          "description": "The URI (web URL or local file path) of the extension registry.",
-          "markdownDescription": "The URI (web URL or local file path) of the extension registry.\n\n- Category: `Experimental`\n- Requires restart: `yes`\n- Default: `https://geminicli.com/extensions.json`",
-          "default": "https://geminicli.com/extensions.json",
+          "description": "The URI (web URL or local file path) of the extension registry. Deprecated in favor of `extensionRegistries`; if explicitly set, it takes precedence over the list as the sole effective registry (named \"Custom\").",
+          "markdownDescription": "The URI (web URL or local file path) of the extension registry. Deprecated in favor of `extensionRegistries`; if explicitly set, it takes precedence over the list as the sole effective registry (named \"Custom\").\n\n- Category: `Experimental`\n- Requires restart: `yes`\n- Default: ``",
+          "default": "",
           "type": "string"
+        },
+        "extensionRegistries": {
+          "title": "Extension Registries",
+          "description": "Named extension marketplace sources to browse/search together. Each entry is a web URL or local file path.",
+          "markdownDescription": "Named extension marketplace sources to browse/search together. Each entry is a web URL or local file path.\n\n- Category: `Experimental`\n- Requires restart: `yes`\n- Default: `[\n  {\n    \"name\": \"OpenAgent\",\n    \"uri\": \"https://geminicli.com/extensions.json\"\n  }\n]`",
+          "default": [
+            {
+              "name": "OpenAgent",
+              "uri": "https://geminicli.com/extensions.json"
+            }
+          ],
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          }
         },
         "extensionReloading": {
           "title": "Extension Reloading",
@@ -4029,7 +4045,7 @@
         },
         "extension": {
           "type": "object",
-          "description": "Metadata describing the OpenAgent extension that owns this MCP server.",
+          "description": "Metadata describing the open-agent extension that owns this MCP server.",
           "additionalProperties": {
             "type": ["string", "boolean", "number"]
           }
@@ -4131,7 +4147,7 @@
     },
     "TelemetrySettings": {
       "type": "object",
-      "description": "Telemetry configuration for OpenAgent.",
+      "description": "Telemetry configuration for open-agent.",
       "additionalProperties": false,
       "properties": {
         "enabled": {
@@ -4228,7 +4244,7 @@
     },
     "CustomTheme": {
       "type": "object",
-      "description": "Custom theme definition used for styling OpenAgent output. Colors are provided as hex strings or named ANSI colors.",
+      "description": "Custom theme definition used for styling open-agent output. Colors are provided as hex strings or named ANSI colors.",
       "additionalProperties": false,
       "properties": {
         "type": {

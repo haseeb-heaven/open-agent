@@ -143,9 +143,7 @@ export const UserIdentity: React.FC<UserIdentityProps> = ({ config }) => {
         <Text color={theme.text.primary} wrap="truncate-end">
           {authType === AuthType.LOGIN_WITH_GOOGLE ? (
             <Text>
-              <Text bold>
-                Signed in with Google{email ? ':' : ''}
-              </Text>
+              <Text bold>Signed in with Google{email ? ':' : ''}</Text>
               {email ? ` ${email}` : ''}
             </Text>
           ) : (

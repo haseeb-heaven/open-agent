@@ -98,6 +98,15 @@ describe('sandboxUtils', () => {
       expect(args).toEqual(['bash', '-c', 'gemini arg1']);
     });
 
+    it('does not expose PATH or PYTHONPATH directories with a matching prefix only', () => {
+      process.env['PATH'] = '/workspace/bin';
+      process.env['PYTHONPATH'] = '/workshop/lib';
+
+      const args = entrypoint('/work', ['node', 'gemini', 'arg1']);
+
+      expect(args).toEqual(['bash', '-c', 'gemini arg1']);
+    });
+
     it('should include PATH and PYTHONPATH if set', () => {
       process.env['PATH'] = '/work/bin:/usr/bin';
       process.env['PYTHONPATH'] = '/work/lib';

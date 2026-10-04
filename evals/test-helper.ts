@@ -425,6 +425,6 @@ export interface EvalCase extends BaseEvalCase {
   messages?: Record<string, unknown>[];
   /** Session ID for the resumed session. Auto-generated if not provided. */
   sessionId?: string;
-  approvalMode?: 'default' | 'auto_edit' | 'yolo' | 'plan';
+  approvalMode?: Parameters<TestRig['run']>[0]['approvalMode'];
   assert: (rig: TestRig, result: string) => Promise<void>;
 }

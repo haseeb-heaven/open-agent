@@ -104,37 +104,43 @@ describe('getUserStartupWarnings', () => {
       expect(warnings.find((w) => w.id === 'home-directory')).toBeUndefined();
     });
 
-    it.skipIf(!canSymlink)('should not return a warning when home directory is a symlink and running in a subdirectory', async () => {
-      const realHome = path.join(testRootDir, 'real-home');
-      await fs.mkdir(realHome, { recursive: true });
-      const symlinkedHome = path.join(testRootDir, 'symlinked-home');
-      await fs.symlink(realHome, symlinkedHome);
-      vi.mocked(os.homedir).mockReturnValue(symlinkedHome);
+    it.skipIf(!canSymlink)(
+      'should not return a warning when home directory is a symlink and running in a subdirectory',
+      async () => {
+        const realHome = path.join(testRootDir, 'real-home');
+        await fs.mkdir(realHome, { recursive: true });
+        const symlinkedHome = path.join(testRootDir, 'symlinked-home');
+        await fs.symlink(realHome, symlinkedHome);
+        vi.mocked(os.homedir).mockReturnValue(symlinkedHome);
 
-      const subDir = path.join(symlinkedHome, 'projects');
-      await fs.mkdir(subDir, { recursive: true });
-      const warnings = await getUserStartupWarnings({}, subDir);
-      expect(warnings.find((w) => w.id === 'home-directory')).toBeUndefined();
-    });
+        const subDir = path.join(symlinkedHome, 'projects');
+        await fs.mkdir(subDir, { recursive: true });
+        const warnings = await getUserStartupWarnings({}, subDir);
+        expect(warnings.find((w) => w.id === 'home-directory')).toBeUndefined();
+      },
+    );
 
-    it.skipIf(!canSymlink)('should return a warning when home directory is a symlink and running in it', async () => {
-      const realHome = path.join(testRootDir, 'real-home2');
-      await fs.mkdir(realHome, { recursive: true });
-      const symlinkedHome = path.join(testRootDir, 'symlinked-home2');
-      await fs.symlink(realHome, symlinkedHome);
-      vi.mocked(os.homedir).mockReturnValue(symlinkedHome);
+    it.skipIf(!canSymlink)(
+      'should return a warning when home directory is a symlink and running in it',
+      async () => {
+        const realHome = path.join(testRootDir, 'real-home2');
+        await fs.mkdir(realHome, { recursive: true });
+        const symlinkedHome = path.join(testRootDir, 'symlinked-home2');
+        await fs.symlink(realHome, symlinkedHome);
+        vi.mocked(os.homedir).mockReturnValue(symlinkedHome);
 
-      const warnings = await getUserStartupWarnings({}, symlinkedHome);
-      expect(warnings).toContainEqual(
-        expect.objectContaining({
-          id: 'home-directory',
-          message: expect.stringContaining(
-            'Warning you are running open-agent in your home directory',
-          ),
-          priority: WarningPriority.Low,
-        }),
-      );
-    });
+        const warnings = await getUserStartupWarnings({}, symlinkedHome);
+        expect(warnings).toContainEqual(
+          expect.objectContaining({
+            id: 'home-directory',
+            message: expect.stringContaining(
+              'Warning you are running open-agent in your home directory',
+            ),
+            priority: WarningPriority.Low,
+          }),
+        );
+      },
+    );
 
     it('should not return a warning when GEMINI_CLI_HOME differs from os.homedir', async () => {
       const projectDir = path.join(testRootDir, 'project');

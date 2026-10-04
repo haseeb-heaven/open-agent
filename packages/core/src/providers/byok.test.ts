@@ -58,7 +58,9 @@ describe('writeEnvKey', () => {
     expect(() => writeEnvKey(envPath, 'bad name', 'x')).toThrow(/Invalid/);
     // Windows pastes often include \r\n — strip, don't throw.
     writeEnvKey(envPath, 'GROQ_API_KEY', 'gsk-paste\r\n');
-    expect(fs.readFileSync(envPath, 'utf8')).toContain('GROQ_API_KEY=gsk-paste');
+    expect(fs.readFileSync(envPath, 'utf8')).toContain(
+      'GROQ_API_KEY=gsk-paste',
+    );
   });
 
   it('refuses drive-root paths and falls back to openagent home', () => {

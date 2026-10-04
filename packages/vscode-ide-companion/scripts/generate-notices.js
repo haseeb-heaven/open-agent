@@ -148,7 +148,7 @@ async function main() {
         'utf-8',
       );
       packageLockJson = JSON.parse(packageLockJsonContent);
-    } catch (e) {
+    } catch {
       console.warn(
         'Warning: package-lock.json not found, writing placeholder NOTICES.txt',
       );

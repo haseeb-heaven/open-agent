@@ -731,7 +731,6 @@ export class GrepTool extends BaseDeclarativeTool<GrepToolParams, ToolResult> {
         (/[*?[{]/.test(params.pattern) &&
           (() => {
             try {
-              // eslint-disable-next-line no-new
               new RegExp(params.pattern);
               return false;
             } catch {

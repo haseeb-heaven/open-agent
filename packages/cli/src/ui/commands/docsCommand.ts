@@ -19,7 +19,8 @@ export const docsCommand: SlashCommand = {
   kind: CommandKind.BUILT_IN,
   autoExecute: true,
   action: async (context: CommandContext): Promise<void> => {
-    const docsUrl = 'https://github.com/haseeb-heaven/open-agent/tree/main/docs';
+    const docsUrl =
+      'https://github.com/haseeb-heaven/open-agent/tree/main/docs';
 
     if (process.env['SANDBOX'] && process.env['SANDBOX'] !== 'sandbox-exec') {
       context.ui.addItem(

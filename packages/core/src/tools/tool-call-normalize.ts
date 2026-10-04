@@ -225,7 +225,11 @@ export function looksLikeDirectoryPath(location: string): boolean {
   if (!t) return true;
   if (/[/\\]$/.test(t)) return true;
   // Bare folder names / paths without a file-ish final segment
-  const base = t.replace(/[/\\]+$/, '').split(/[/\\]/).pop() ?? '';
+  const base =
+    t
+      .replace(/[/\\]+$/, '')
+      .split(/[/\\]/)
+      .pop() ?? '';
   if (!base) return true;
   // Has an extension → treat as file; otherwise directory
   return !/\.[A-Za-z0-9]{1,8}$/.test(base);
@@ -279,7 +283,10 @@ function powershellSingleQuote(value: string): string {
  * Build a platform-native shell command that downloads `url` to `destPath`.
  * Windows → PowerShell Invoke-WebRequest; otherwise curl.
  */
-export function buildDownloadShellCommand(url: string, destPath: string): string {
+export function buildDownloadShellCommand(
+  url: string,
+  destPath: string,
+): string {
   const isWin = process.platform === 'win32';
   if (isWin) {
     const u = powershellSingleQuote(url);

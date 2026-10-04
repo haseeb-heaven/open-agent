@@ -42,7 +42,11 @@ describe('ModelRoutingContentGenerator', () => {
     const router = new ModelRoutingContentGenerator(base, {
       getModel: () => 'gemini-2.5-flash',
     });
-    await router.generateContent(REQUEST('gemini-2.5-flash'), 'id', LlmRole.MAIN);
+    await router.generateContent(
+      REQUEST('gemini-2.5-flash'),
+      'id',
+      LlmRole.MAIN,
+    );
     expect(base.generateContent).toHaveBeenCalled();
     expect(createMultiProviderGenerator).not.toHaveBeenCalled();
   });
@@ -60,23 +64,39 @@ describe('ModelRoutingContentGenerator', () => {
       getModel: () => sessionModel,
     });
 
-    await router.generateContent(REQUEST('groq-llama-3.3-70b'), 'id', LlmRole.MAIN);
+    await router.generateContent(
+      REQUEST('groq-llama-3.3-70b'),
+      'id',
+      LlmRole.MAIN,
+    );
     expect(groq.generateContent).toHaveBeenCalled();
     expect(base.generateContent).not.toHaveBeenCalled();
 
     // Cached on the second call.
-    await router.generateContent(REQUEST('groq-llama-3.3-70b'), 'id', LlmRole.MAIN);
+    await router.generateContent(
+      REQUEST('groq-llama-3.3-70b'),
+      'id',
+      LlmRole.MAIN,
+    );
     expect(createMultiProviderGenerator).toHaveBeenCalledTimes(1);
 
     // Stale request model must NOT override an active multi-provider session
     // (this was the "still gemini after /model openrouter" bug).
-    await router.generateContent(REQUEST('gemini-2.5-flash'), 'id', LlmRole.MAIN);
+    await router.generateContent(
+      REQUEST('gemini-2.5-flash'),
+      'id',
+      LlmRole.MAIN,
+    );
     expect(base.generateContent).not.toHaveBeenCalled();
     expect(groq.generateContent).toHaveBeenCalledTimes(3);
 
     // Switching the session model back to Google returns to the base generator.
     sessionModel = 'gemini-2.5-flash';
-    await router.generateContent(REQUEST('gemini-2.5-flash'), 'id', LlmRole.MAIN);
+    await router.generateContent(
+      REQUEST('gemini-2.5-flash'),
+      'id',
+      LlmRole.MAIN,
+    );
     expect(base.generateContent).toHaveBeenCalledTimes(1);
   });
 
