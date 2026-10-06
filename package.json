@@ -46,6 +46,7 @@
     "test": "npm run test --workspaces --if-present && npm run test:sea-launch",
     "test:ci": "npm run test:ci --workspaces --if-present && npm run test:scripts && npm run test:sea-launch",
     "test:scripts": "vitest run --config ./scripts/tests/vitest.config.ts",
+    "test:offline:e2e": "node scripts/run-offline-e2e.mjs",
     "test:live": "node scripts/live-test/run-live-tests.mjs",
     "test:sea-launch": "vitest run sea/sea-launch.test.js",
     "posttest": "npm run build",

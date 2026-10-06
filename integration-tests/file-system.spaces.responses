@@ -1,0 +1,2 @@
+{"method": "generateContentStream", "response": [{"candidates": [{"content": {"role": "model", "parts": [{"functionCall": {"name": "write_file", "args": {"file_path": "my test file.txt", "content": "hello"}}}]}, "finishReason": "STOP", "index": 0}]}]}
+{"method": "generateContentStream", "response": [{"candidates": [{"content": {"role": "model", "parts": [{"text": "hello"}]}, "finishReason": "STOP", "index": 0}]}]}

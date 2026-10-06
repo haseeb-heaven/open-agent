@@ -26,6 +26,10 @@ describe('list_directory', () => {
 
   it('should be able to list a directory', async () => {
     await rig.setup('should be able to list a directory', {
+      fakeResponsesPath: join(
+        import.meta.dirname,
+        'list_directory.list.responses',
+      ),
       settings: { tools: { core: ['list_directory'] } },
     });
     rig.createFile('file1.txt', 'file 1 content');
@@ -46,7 +50,10 @@ describe('list_directory', () => {
 
     const prompt = `Can you list the files in the current directory.`;
 
-    const result = await rig.run({ args: prompt });
+    const result = await rig.run({
+      args: prompt,
+      env: { GEMINI_API_KEY: 'offline-fixture-key' },
+    });
 
     try {
       await rig.expectToolCallSuccess(['list_directory']);

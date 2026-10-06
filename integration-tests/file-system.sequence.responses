@@ -1,0 +1,3 @@
+{"method": "generateContentStream", "response": [{"candidates": [{"content": {"role": "model", "parts": [{"functionCall": {"name": "read_file", "args": {"file_path": "version.txt"}}}]}, "finishReason": "STOP", "index": 0}]}]}
+{"method": "generateContentStream", "response": [{"candidates": [{"content": {"role": "model", "parts": [{"functionCall": {"name": "write_file", "args": {"file_path": "version.txt", "content": "1.0.1"}}}]}, "finishReason": "STOP", "index": 0}]}]}
+{"method": "generateContentStream", "response": [{"candidates": [{"content": {"role": "model", "parts": [{"text": "Version updated to 1.0.1."}]}, "finishReason": "STOP", "index": 0}]}]}

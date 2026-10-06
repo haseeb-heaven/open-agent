@@ -128,6 +128,7 @@ describe('Policy Engine Headless Mode', () => {
     const result = await rig.run({
       args,
       approvalMode: 'default',
+      env: { GEMINI_API_KEY: 'offline-fixture-key' },
     });
 
     await verifyToolExecution(

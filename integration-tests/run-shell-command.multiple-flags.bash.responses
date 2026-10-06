@@ -1,0 +1,2 @@
+{"method":"generateContentStream","response":[{"candidates":[{"content":{"role":"model","parts":[{"functionCall":{"name":"run_shell_command","args":{"command":"wc -l test.txt"}}},{"functionCall":{"name":"run_shell_command","args":{"command":"ls"}}}]},"finishReason":"STOP","index":0}]}]}
+{"method":"generateContentStream","response":[{"candidates":[{"content":{"role":"model","parts":[{"text":"The line count is 3 and the directory listing is shown."}]},"finishReason":"STOP","index":0}]}]}

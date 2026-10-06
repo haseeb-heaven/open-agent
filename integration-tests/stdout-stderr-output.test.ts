@@ -31,6 +31,7 @@ describe('stdout-stderr-output', () => {
 
     const { stdout, exitCode } = await rig.runWithStreams(['-p', 'Say hello'], {
       signal,
+      env: { GEMINI_API_KEY: 'offline-fixture-key' },
     });
 
     expect(exitCode).toBe(0);
@@ -51,7 +52,7 @@ describe('stdout-stderr-output', () => {
 
     const { stdout, exitCode } = await rig.runWithStreams(
       ['-p', '@nonexistent-file-that-does-not-exist.txt explain this'],
-      { signal },
+      { signal, env: { GEMINI_API_KEY: 'offline-fixture-key' } },
     );
 
     expect(exitCode).toBe(0);
