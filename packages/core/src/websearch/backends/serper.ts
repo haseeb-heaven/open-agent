@@ -17,7 +17,7 @@ import type {
 } from '../types.js';
 
 const ENV = 'SERPER_API_KEY';
-const ENDPOINT = 'https://google.serper.dev/search';
+const BASE_URL = 'https://google.serper.dev';
 
 export const serperBackend: WebSearchBackend = {
   meta: {
@@ -37,7 +37,8 @@ export const serperBackend: WebSearchBackend = {
     const key = env[ENV]?.trim();
     if (!key) throw new Error(`${ENV} is not set`);
 
-    const raw = await fetchJson(ENDPOINT, {
+    const baseUrl = (env['SERPER_BASE_URL'] || BASE_URL).replace(/\/+$/, '');
+    const raw = await fetchJson(`${baseUrl}/search`, {
       method: 'POST',
       signal: options?.signal,
       headers: {
