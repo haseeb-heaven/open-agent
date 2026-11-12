@@ -1,0 +1,2 @@
+{"method": "generateContentStream", "response": [{"candidates": [{"content": {"role": "model", "parts": [{"functionCall": {"name": "replace", "args": {"file_path": "file_to_replace.txt", "instruction": "Replace foo with bar", "old_string": "foo", "new_string": "bar"}}}]}, "finishReason": "STOP", "index": 0}]}]}
+{"method": "generateContentStream", "response": [{"candidates": [{"content": {"role": "model", "parts": [{"text": "Filesystem task finished."}]}, "finishReason": "STOP", "index": 0}]}]}

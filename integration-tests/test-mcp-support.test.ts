@@ -57,7 +57,7 @@ describe('test-mcp-support', () => {
     // Run the CLI asking for weather
     const output = await rig.run({
       args: 'What is the weather in London? Answer with the raw tool response snippet.',
-      env: { GEMINI_API_KEY: 'dummy' },
+      env: { GEMINI_API_KEY: 'offline-fixture-key' },
     });
 
     // Assert tool call

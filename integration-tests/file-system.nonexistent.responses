@@ -1,0 +1,2 @@
+{"method": "generateContentStream", "response": [{"candidates": [{"content": {"role": "model", "parts": [{"functionCall": {"name": "read_file", "args": {"file_path": "non_existent.txt"}}}]}, "finishReason": "STOP", "index": 0}]}]}
+{"method": "generateContentStream", "response": [{"candidates": [{"content": {"role": "model", "parts": [{"text": "Filesystem task finished."}]}, "finishReason": "STOP", "index": 0}]}]}

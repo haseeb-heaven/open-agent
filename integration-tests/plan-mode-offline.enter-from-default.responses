@@ -1,0 +1,2 @@
+{"method":"generateContentStream","response":[{"candidates":[{"content":{"role":"model","parts":[{"functionCall":{"name":"enter_plan_mode","args":{}}}]},"finishReason":"STOP","index":0}]}]}
+{"method":"generateContentStream","response":[{"candidates":[{"content":{"role":"model","parts":[{"text":"Plan mode is active."}]},"finishReason":"STOP","index":0}]}]}

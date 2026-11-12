@@ -12,6 +12,7 @@ import {
   assertModelHasOutput,
   checkModelOutputContent,
 } from './test-helper.js';
+import { join } from 'node:path';
 
 describe('write_file', () => {
   let rig: TestRig;
@@ -24,11 +25,15 @@ describe('write_file', () => {
 
   it('should be able to write a joke to a file', async () => {
     await rig.setup('should be able to write a joke to a file', {
+      fakeResponsesPath: join(import.meta.dirname, 'write_file.joke.responses'),
       settings: { tools: { core: ['write_file', 'read_file'] } },
     });
     const prompt = `show me an example of using the write tool. put a dad joke in dad.txt`;
 
-    const result = await rig.run({ args: prompt });
+    const result = await rig.run({
+      args: prompt,
+      env: { GEMINI_API_KEY: 'offline-fixture-key' },
+    });
 
     const foundToolCall = await rig.waitForToolCall('write_file');
 

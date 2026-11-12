@@ -7,6 +7,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { existsSync } from 'node:fs';
 import * as path from 'node:path';
+import { join } from 'node:path';
 import {
   TestRig,
   printDebugInfo,
@@ -25,12 +26,17 @@ describe('file-system', () => {
 
   it('should be able to read a file', async () => {
     await rig.setup('should be able to read a file', {
+      fakeResponsesPath: join(
+        import.meta.dirname,
+        'file-system.read.responses',
+      ),
       settings: { tools: { core: ['read_file'] } },
     });
     rig.createFile('test.txt', 'hello world');
 
     const result = await rig.run({
       args: `read the file test.txt and show me its contents`,
+      env: { GEMINI_API_KEY: 'offline-fixture-key' },
     });
 
     const foundToolCall = await rig.waitForToolCall('read_file');
@@ -57,12 +63,17 @@ describe('file-system', () => {
 
   it('should be able to write a hello world message to a file', async () => {
     await rig.setup('should be able to write a hello world message to a file', {
+      fakeResponsesPath: join(
+        import.meta.dirname,
+        'file-system.write.responses',
+      ),
       settings: { tools: { core: ['write_file', 'replace', 'read_file'] } },
     });
     rig.createFile('test.txt', '');
 
     const result = await rig.run({
       args: `edit test.txt to have a hello world message`,
+      env: { GEMINI_API_KEY: 'offline-fixture-key' },
     });
 
     // Accept multiple valid tools for editing files
@@ -115,6 +126,10 @@ describe('file-system', () => {
 
   it('should correctly handle file paths with spaces', async () => {
     await rig.setup('should correctly handle file paths with spaces', {
+      fakeResponsesPath: join(
+        import.meta.dirname,
+        'file-system.spaces.responses',
+      ),
       settings: { tools: { core: ['write_file', 'read_file'] } },
     });
     const fileName = 'my test file.txt';
@@ -122,6 +137,7 @@ describe('file-system', () => {
     const result = await rig.run({
       args: `write "hello" to "${fileName}" and then stop. Do not perform any other actions.`,
       timeout: 600000, // 10 min — real LLM can be slow in Docker sandbox
+      env: { GEMINI_API_KEY: 'offline-fixture-key' },
     });
 
     const foundToolCall = await rig.waitForToolCall('write_file');
@@ -141,13 +157,20 @@ describe('file-system', () => {
 
   it('should perform a read-then-write sequence', async () => {
     await rig.setup('should perform a read-then-write sequence', {
+      fakeResponsesPath: join(
+        import.meta.dirname,
+        'file-system.sequence.responses',
+      ),
       settings: { tools: { core: ['read_file', 'replace', 'write_file'] } },
     });
     const fileName = 'version.txt';
     rig.createFile(fileName, '1.0.0');
 
     const prompt = `Read the version from ${fileName} and write the next version 1.0.1 back to the file.`;
-    const result = await rig.run({ args: prompt });
+    const result = await rig.run({
+      args: prompt,
+      env: { GEMINI_API_KEY: 'offline-fixture-key' },
+    });
 
     await rig.waitForTelemetryReady();
     const toolLogs = rig.readToolLogs();
@@ -184,6 +207,7 @@ describe('file-system', () => {
 
     const result = await rig.run({
       args: `rewrite the file ${fileName} to replace all instances of "test line" with "new line"`,
+      env: { GEMINI_API_KEY: 'offline-fixture-key' },
     });
 
     const validTools = ['write_file', 'edit'];
@@ -229,12 +253,19 @@ describe('file-system', () => {
   it('should fail safely when trying to edit a non-existent file', async () => {
     await rig.setup(
       'should fail safely when trying to edit a non-existent file',
-      { settings: { tools: { core: ['read_file', 'replace'] } } },
+      {
+        fakeResponsesPath: join(
+          import.meta.dirname,
+          'file-system.nonexistent.responses',
+        ),
+        settings: { tools: { core: ['read_file', 'replace'] } },
+      },
     );
     const fileName = 'non_existent.txt';
 
     const result = await rig.run({
       args: `In ${fileName}, replace "a" with "b"`,
+      env: { GEMINI_API_KEY: 'offline-fixture-key' },
     });
 
     await rig.waitForTelemetryReady();

@@ -46,6 +46,7 @@ priority = 100
     const result = await rig.run({
       args: ['-p', 'Run ls -F', '--model', 'gemini-3.1-pro-preview'],
       approvalMode: 'default',
+      env: { GEMINI_API_KEY: 'offline-fixture-key' },
     });
 
     expect(result).toContain('I ran ls -F');
@@ -73,6 +74,7 @@ priority = 100
     const result = await rig.run({
       args: ['-p', 'Run ls -F', '--model', 'gemini-3.1-pro-preview'],
       approvalMode: 'default',
+      env: { GEMINI_API_KEY: 'offline-fixture-key' },
     });
 
     // In non-interactive mode, it should be denied

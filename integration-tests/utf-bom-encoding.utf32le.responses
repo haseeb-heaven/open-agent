@@ -1,0 +1,2 @@
+{"method":"generateContentStream","response":[{"candidates":[{"content":{"role":"model","parts":[{"functionCall":{"name":"read_file","args":{"file_path":"utf32le.txt"}}}]},"finishReason":"STOP","index":0}]}]}
+{"method":"generateContentStream","response":[{"candidates":[{"content":{"role":"model","parts":[{"text":"Cannot display content of binary file: utf32le.txt"}]},"finishReason":"STOP","index":0}]}]}

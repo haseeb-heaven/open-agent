@@ -900,7 +900,10 @@ export class TestRig {
    */
   runWithStreams(
     args: string[],
-    options?: { signal?: AbortSignal },
+    options?: {
+      signal?: AbortSignal;
+      env?: Record<string, string | undefined>;
+    },
   ): Promise<{ stdout: string; stderr: string; exitCode: number | null }> {
     return new Promise((resolve, reject) => {
       const { command, initialArgs } = this._getCommandAndArgs([
@@ -912,7 +915,7 @@ export class TestRig {
       const child = spawn(command, allArgs, {
         cwd: this.testDir!,
         stdio: 'pipe',
-        env: this._getCleanEnv(),
+        env: this._getCleanEnv(options?.env),
         signal: options?.signal,
       });
       this._spawnedProcesses.push(child);

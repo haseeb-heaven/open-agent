@@ -48,6 +48,7 @@ describe('browser-agent-localhost', () => {
 
     const result = await rig.run({
       args: 'Navigate to http://127.0.0.1:18923/index.html and tell me the page title and list all links.',
+      env: { GEMINI_API_KEY: 'offline-fixture-key' },
     });
 
     assertModelHasOutput(result);
@@ -75,6 +76,7 @@ describe('browser-agent-localhost', () => {
 
     const result = await rig.run({
       args: "Navigate to http://127.0.0.1:18923/form.html, fill in name='Test User', email='test@example.com', message='Hello World', and submit the form.",
+      env: { GEMINI_API_KEY: 'offline-fixture-key' },
     });
 
     assertModelHasOutput(result);
@@ -102,6 +104,7 @@ describe('browser-agent-localhost', () => {
 
     const result = await rig.run({
       args: "Go to http://127.0.0.1:18923/multi-step/step1.html, fill in 'testuser' as username, click Next, then click Finish on step 2. Report the result.",
+      env: { GEMINI_API_KEY: 'offline-fixture-key' },
     });
 
     assertModelHasOutput(result);
@@ -129,6 +132,7 @@ describe('browser-agent-localhost', () => {
 
     const result = await rig.run({
       args: 'Navigate to http://127.0.0.1:18923/dynamic.html, wait for content to load, and tell me what items appear.',
+      env: { GEMINI_API_KEY: 'offline-fixture-key' },
     });
 
     assertModelHasOutput(result);
@@ -156,6 +160,7 @@ describe('browser-agent-localhost', () => {
 
     const result = await rig.run({
       args: 'Navigate to http://127.0.0.1:18923/index.html and take a screenshot.',
+      env: { GEMINI_API_KEY: 'offline-fixture-key' },
     });
 
     assertModelHasOutput(result);
