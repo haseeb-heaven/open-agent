@@ -97,6 +97,11 @@ export function isKnownSafeCommand(args: string[]): boolean {
     'get-service',
     'get-eventlog',
     'select-string',
+    // Read-only pipeline transforms used by the CLI's supported PowerShell
+    // query wrapper; keep them safe when the wrapper is classified cross-platform.
+    'group-object',
+    'sort-object',
+    'format-table',
   ]);
 
   if (safeCommands.has(cmd)) {

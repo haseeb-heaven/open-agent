@@ -700,7 +700,7 @@ export class Session {
       knownNames: toolRegistry.getAllToolNames(),
     });
     const tool = toolRegistry.getTool(normalized.name, normalized.args);
-    const effectiveArgs = (normalized.args ?? args) as typeof args;
+    const effectiveArgs = normalized.args ?? args;
 
     if (!tool) {
       return errorResponse(

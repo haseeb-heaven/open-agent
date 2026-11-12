@@ -82,7 +82,12 @@ describe('extensionSettings', () => {
       os.tmpdir(),
       `gemini-cli-test-workspace-${Date.now()}`,
     );
-    extensionDir = path.join(tempHomeDir, '.openagent', 'extensions', 'test-ext');
+    extensionDir = path.join(
+      tempHomeDir,
+      '.openagent',
+      'extensions',
+      'test-ext',
+    );
     // Spy and mock the method, but also create the directory so we can write to it.
     vi.spyOn(ExtensionStorage.prototype, 'getExtensionDir').mockReturnValue(
       extensionDir,

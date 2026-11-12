@@ -389,7 +389,7 @@ export function resolveCanonicalToolName(
 
   // Arg-shape recovery for completely unknown names (generic_tool, etc.)
   const inferred = inferToolNameFromArgs(options.args);
-  if (inferred && (known).includes(inferred)) {
+  if (inferred && known.includes(inferred)) {
     return inferred;
   }
 

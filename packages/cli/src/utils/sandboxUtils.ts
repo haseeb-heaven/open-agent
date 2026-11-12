@@ -100,6 +100,15 @@ export function ports(): string[] {
 export function entrypoint(workdir: string, cliArgs: string[]): string[] {
   const isWindows = os.platform() === 'win32';
   const containerWorkdir = getContainerPath(workdir);
+  const normalizedWorkdir = containerWorkdir.replace(/\/+$/, '').toLowerCase();
+  const workdirPrefix = normalizedWorkdir ? `${normalizedWorkdir}/` : '/';
+  const isWithinWorkdir = (containerPath: string) => {
+    const normalizedPath = containerPath.toLowerCase();
+    return (
+      normalizedPath === normalizedWorkdir ||
+      normalizedPath.startsWith(workdirPrefix)
+    );
+  };
   const shellCmds = [];
   const pathSeparator = isWindows ? ';' : ':';
 
@@ -108,9 +117,7 @@ export function entrypoint(workdir: string, cliArgs: string[]): string[] {
     const paths = process.env['PATH'].split(pathSeparator);
     for (const p of paths) {
       const containerPath = getContainerPath(p);
-      if (
-        containerPath.toLowerCase().startsWith(containerWorkdir.toLowerCase())
-      ) {
+      if (isWithinWorkdir(containerPath)) {
         pathSuffix += `:${containerPath}`;
       }
     }
@@ -124,9 +131,7 @@ export function entrypoint(workdir: string, cliArgs: string[]): string[] {
     const paths = process.env['PYTHONPATH'].split(pathSeparator);
     for (const p of paths) {
       const containerPath = getContainerPath(p);
-      if (
-        containerPath.toLowerCase().startsWith(containerWorkdir.toLowerCase())
-      ) {
+      if (isWithinWorkdir(containerPath)) {
         pythonPathSuffix += `:${containerPath}`;
       }
     }

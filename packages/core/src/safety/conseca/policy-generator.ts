@@ -115,9 +115,9 @@ export async function generatePolicy(
         model,
         config: {
           responseMimeType: 'application/json',
-          responseSchema: zodToJsonSchema(SecurityPolicyResponseSchema as any, {
+          responseSchema: zodToJsonSchema(SecurityPolicyResponseSchema, {
             target: 'openApi3',
-          }) as any,
+          }),
         },
         contents: [
           {

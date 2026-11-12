@@ -220,31 +220,34 @@ describe('resolveWorkspacePolicyState', () => {
     });
   });
 
-  it.skipIf(!canSymlink)('should return empty state if cwd is a symlink to the home directory', async () => {
-    const policiesDir = path.join(tempDir, '.gemini', 'policies');
-    fs.mkdirSync(policiesDir, { recursive: true });
-    fs.writeFileSync(path.join(policiesDir, 'policy.toml'), 'rules = []');
+  it.skipIf(!canSymlink)(
+    'should return empty state if cwd is a symlink to the home directory',
+    async () => {
+      const policiesDir = path.join(tempDir, '.gemini', 'policies');
+      fs.mkdirSync(policiesDir, { recursive: true });
+      fs.writeFileSync(path.join(policiesDir, 'policy.toml'), 'rules = []');
 
-    // Create a symlink to the home directory
-    const symlinkDir = path.join(
-      os.tmpdir(),
-      `gemini-cli-symlink-${Date.now()}`,
-    );
-    fs.symlinkSync(tempDir, symlinkDir, 'dir');
+      // Create a symlink to the home directory
+      const symlinkDir = path.join(
+        os.tmpdir(),
+        `gemini-cli-symlink-${Date.now()}`,
+      );
+      fs.symlinkSync(tempDir, symlinkDir, 'dir');
 
-    try {
-      // Run from symlink to HOME directory
-      const result = await resolveWorkspacePolicyState({
-        cwd: symlinkDir,
-        trustedFolder: true,
-        interactive: true,
-      });
+      try {
+        // Run from symlink to HOME directory
+        const result = await resolveWorkspacePolicyState({
+          cwd: symlinkDir,
+          trustedFolder: true,
+          interactive: true,
+        });
 
-      expect(result.workspacePoliciesDir).toBeUndefined();
-      expect(result.policyUpdateConfirmationRequest).toBeUndefined();
-    } finally {
-      // Clean up symlink
-      fs.unlinkSync(symlinkDir);
-    }
-  });
+        expect(result.workspacePoliciesDir).toBeUndefined();
+        expect(result.policyUpdateConfirmationRequest).toBeUndefined();
+      } finally {
+        // Clean up symlink
+        fs.unlinkSync(symlinkDir);
+      }
+    },
+  );
 });

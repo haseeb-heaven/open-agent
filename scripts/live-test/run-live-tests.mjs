@@ -36,6 +36,9 @@ import { spawn } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import process from 'node:process';
+
+/* global console, setTimeout, clearTimeout */
 import { loadAllModels } from './model-registry.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));

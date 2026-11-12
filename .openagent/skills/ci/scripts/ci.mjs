@@ -7,6 +7,9 @@
  */
 
 import { execSync } from 'node:child_process';
+import process from 'node:process';
+
+/* global console, setTimeout */
 
 const BRANCH =
   process.argv[2] || execSync('git branch --show-current').toString().trim();
@@ -16,21 +19,19 @@ let REPO;
 try {
   const remoteUrl = execSync('git remote get-url origin').toString().trim();
   REPO = remoteUrl
-    .replace(/.*github\.com[\/:]/, '')
+    .replace(/.*github\.com[/:]/, '')
     .replace(/\.git$/, '')
     .trim();
-} catch (e) {
+} catch {
   REPO = 'haseeb-heaven/open-agent';
 }
-
-const FAILED_FILES = new Set();
 
 function runGh(args) {
   try {
     return execSync(`gh ${args}`, {
       stdio: ['ignore', 'pipe', 'ignore'],
     }).toString();
-  } catch (e) {
+  } catch {
     return null;
   }
 }
@@ -42,7 +43,7 @@ function fetchFailuresViaApi(jobId) {
       stdio: ['ignore', 'pipe', 'ignore'],
       maxBuffer: 10 * 1024 * 1024,
     }).toString();
-  } catch (e) {
+  } catch {
     return '';
   }
 }
@@ -62,17 +63,17 @@ function isNoise(line) {
 
 function extractTestFile(failureText) {
   const cleanLine = failureText
-    .replace(/[|#\[\]()]/g, ' ')
+    .replace(/[|#[\]()]/g, ' ')
     .replace(/<[^>]*>/g, ' ')
     .trim();
-  const fileMatch = cleanLine.match(/([\w\/._-]+\.test\.[jt]sx?)/);
+  const fileMatch = cleanLine.match(/([\w/._-]+\.test\.[jt]sx?)/);
   if (fileMatch) return fileMatch[1];
   return null;
 }
 
 function generateTestCommand(failedFilesMap) {
   const workspaceToFiles = new Map();
-  for (const [file, info] of failedFilesMap.entries()) {
+  for (const [file] of failedFilesMap.entries()) {
     if (
       ['Job Error', 'Unknown File', 'Build Error', 'Lint Error'].includes(file)
     )
@@ -86,7 +87,7 @@ function generateTestCommand(failedFilesMap) {
       workspace = 'open-agent';
       relPath = file.replace('packages/cli/', '');
     }
-    relPath = relPath.replace(/^.*packages\/[^\/]+\//, '');
+    relPath = relPath.replace(/^.*packages\/[^/]+\//, '');
     if (!workspaceToFiles.has(workspace))
       workspaceToFiles.set(workspace, new Set());
     workspaceToFiles.get(workspace).add(relPath);
@@ -142,7 +143,7 @@ async function monitor() {
           }
         }
       }
-    } catch (e) {
+    } catch {
       // Ignore if branch/SHA not found or API fails
     }
 

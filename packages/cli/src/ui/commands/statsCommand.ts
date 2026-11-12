@@ -85,9 +85,12 @@ async function defaultSessionView(context: CommandContext) {
   const statsConfig = context.services.agentContext?.config;
   if (statsConfig) {
     const statsAuthType = statsConfig.getContentGeneratorConfig()?.authType;
-    const isGeminiAuth = !!statsAuthType && GEMINI_AUTH_TYPES.has(statsAuthType);
+    const isGeminiAuth =
+      !!statsAuthType && GEMINI_AUTH_TYPES.has(statsAuthType);
     const [quota] = await Promise.all([
-      isGeminiAuth ? statsConfig.refreshUserQuota() : Promise.resolve(undefined),
+      isGeminiAuth
+        ? statsConfig.refreshUserQuota()
+        : Promise.resolve(undefined),
       statsConfig.refreshAvailableCredits(),
     ]);
     if (quota) {
