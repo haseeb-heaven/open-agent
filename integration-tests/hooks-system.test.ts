@@ -26,12 +26,6 @@ describe.skipIf(skipFlaky)(
       }
     });
 
-    describe('Command Hooks - Blocking Behavior', () => {});
-
-    describe('Command Hooks - Additional Context', () => {});
-
-    describe('Command Hooks - Tail Tool Calls', () => {});
-
     describe('BeforeModel Hooks - LLM Request Modification', () => {
       it('should modify LLM requests with BeforeModel hooks', async () => {
         // Create a hook script that replaces the LLM request with a modified version

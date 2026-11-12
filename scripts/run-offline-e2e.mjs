@@ -20,6 +20,19 @@ const manifestPath = resolve(
 );
 const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
 const cases = manifest.cases;
+if (
+  !Number.isInteger(manifest.acceptanceMinimum) ||
+  manifest.acceptanceMinimum < 1
+) {
+  logger.error('Offline E2E manifest acceptanceMinimum must be a positive integer.');
+  process.exit(1);
+}
+if (manifest.acceptanceMinimum > cases.length) {
+  logger.error(
+    `Offline E2E manifest acceptanceMinimum (${manifest.acceptanceMinimum}) exceeds the ${cases.length} listed cases; the gate could never pass.`,
+  );
+  process.exit(1);
+}
 const key = ({ file, name }) => `${file}::${name}`;
 const keys = cases.map(key);
 if (new Set(keys).size !== keys.length) {
@@ -33,7 +46,12 @@ const files = [...new Set(cases.map(({ file }) => file))];
 const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const groups = files.map((file) => {
   const fileCases = cases.filter((testCase) => testCase.file === file);
-  const filtered = fileCases.length > 0 && fileCases.every(({ testTitle }) => typeof testTitle === 'string' && testTitle.length > 0);
+  // A file is filtered only when every listed case opts in with
+  // `runOnlyListed: true`; otherwise the whole file runs and any unlisted
+  // non-skipped test fails the exact-identity accounting below.
+  const filtered =
+    fileCases.length > 0 &&
+    fileCases.every(({ runOnlyListed }) => runOnlyListed === true);
   return {
     file,
     filtered,
@@ -46,7 +64,33 @@ const tempDir = mkdtempSync(resolve(tmpdir(), 'open-agent-offline-e2e-'));
 const networkAttemptsPath = resolve(tempDir, 'blocked-network-attempts.jsonl');
 writeFileSync(networkAttemptsPath, '');
 const env = Object.fromEntries(
-  ['PATH', 'HOME', 'TMPDIR', 'TMP', 'TEMP', 'LANG', 'LC_ALL', 'LC_CTYPE']
+  [
+    'PATH',
+    'HOME',
+    'TMPDIR',
+    'TMP',
+    'TEMP',
+    'LANG',
+    'LC_ALL',
+    'LC_CTYPE',
+    // Windows requires these for child processes to resolve system DLLs,
+    // the command interpreter, and per-user directories.
+    'SystemRoot',
+    'WINDIR',
+    'COMSPEC',
+    'PATHEXT',
+    'USERPROFILE',
+    'APPDATA',
+    'LOCALAPPDATA',
+    'PROGRAMDATA',
+    'PROGRAMFILES',
+    'PROGRAMFILES(X86)',
+    'HOMEDRIVE',
+    'HOMEPATH',
+    'NUMBER_OF_PROCESSORS',
+    'PROCESSOR_ARCHITECTURE',
+    'OS',
+  ]
     .filter((name) => process.env[name] !== undefined)
     .map((name) => [name, process.env[name]]),
 );

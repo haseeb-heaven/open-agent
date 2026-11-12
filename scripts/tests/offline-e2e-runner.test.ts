@@ -5,7 +5,7 @@
  */
 
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { get as httpGet, request as httpRequest } from 'node:http';
 import { connect as netConnect } from 'node:net';
@@ -185,5 +185,45 @@ describe('offline E2E network guard', () => {
         server.close((error) => (error ? rejectClose(error) : resolveClose())),
       );
     }
+  });
+});
+
+describe('offline E2E manifest gate', () => {
+  const runner = resolve('scripts/run-offline-e2e.mjs');
+
+  const runWithManifest = (manifest) => {
+    const tempDir = mkdtempSync(resolve(tmpdir(), 'offline-e2e-manifest-'));
+    const manifestPath = resolve(tempDir, 'manifest.json');
+    const scriptPath = resolve(tempDir, 'runner.mjs');
+    try {
+      writeFileSync(manifestPath, JSON.stringify(manifest));
+      // Point the runner at the temp manifest by rewriting its manifest path.
+      const source = readFileSync(runner, 'utf8').replace(
+        "resolve(\n  root,\n  'integration-tests/offline-e2e-manifest.json',\n)",
+        JSON.stringify(manifestPath),
+      );
+      writeFileSync(scriptPath, source);
+      return spawnSync(process.execPath, [scriptPath], {
+        encoding: 'utf8',
+        cwd: resolve('.'),
+      });
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  };
+
+  it('rejects an acceptanceMinimum that exceeds the listed cases', () => {
+    const result = runWithManifest({
+      acceptanceMinimum: 200,
+      cases: [{ file: 'a.test.ts', name: 'a' }],
+    });
+    expect(result.status).toBe(1);
+    expect(result.stderr).toMatch(/exceeds the 1 listed cases/);
+  });
+
+  it('rejects a non-positive acceptanceMinimum', () => {
+    const result = runWithManifest({ acceptanceMinimum: 0, cases: [] });
+    expect(result.status).toBe(1);
+    expect(result.stderr).toMatch(/must be a positive integer/);
   });
 });

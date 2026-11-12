@@ -1,5 +1,5 @@
 {
-  "acceptanceMinimum": 200,
+  "acceptanceMinimum": 83,
   "cases": [
     {
       "file": "offline-cli-contract.test.ts",
@@ -312,32 +312,32 @@
     {
       "file": "file-system.test.ts",
       "name": "file-system should be able to write a hello world message to a file",
-      "testTitle": "should be able to write a hello world message to a file"
+      "runOnlyListed": true
     },
     {
       "file": "file-system.test.ts",
       "name": "file-system should correctly handle file paths with spaces",
-      "testTitle": "should correctly handle file paths with spaces"
+      "runOnlyListed": true
     },
     {
       "file": "file-system.test.ts",
       "name": "file-system should perform a read-then-write sequence",
-      "testTitle": "should perform a read-then-write sequence"
+      "runOnlyListed": true
     },
     {
       "file": "file-system.test.ts",
       "name": "file-system should fail safely when trying to edit a non-existent file",
-      "testTitle": "should fail safely when trying to edit a non-existent file"
+      "runOnlyListed": true
     },
     {
       "file": "list_directory.test.ts",
       "name": "list_directory should be able to list a directory",
-      "testTitle": "should be able to list a directory"
+      "runOnlyListed": true
     },
     {
       "file": "replace.test.ts",
       "name": "replace should be able to replace content in a file",
-      "testTitle": "should be able to replace content in a file"
+      "runOnlyListed": true
     }
   ]
 }
