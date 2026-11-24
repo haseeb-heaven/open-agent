@@ -40,6 +40,8 @@ describe('WebSearchTool', () => {
     vi.stubEnv('TAVILY_API_KEY', '');
     vi.stubEnv('SERPER_API_KEY', '');
     vi.stubEnv('EXA_API_KEY', '');
+    vi.stubEnv('WEBZ_API_TOKEN', '');
+    vi.stubEnv('WEBZ_NEWS_SEARCH_URL', '');
     // Exa is keyless (freeNoKey) now, so also force Gemini explicitly and
     // give the Gemini client a key so the plan selects the Gemini path.
     vi.stubEnv('GEMINI_API_KEY', 'test-gemini-key');

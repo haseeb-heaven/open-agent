@@ -362,7 +362,7 @@ class WebSearchToolInvocation extends BaseToolInvocation<
 
 /**
  * A tool to perform web searches across multiple backends (Brave, Tavily,
- * Serper, Exa, Gemini Google Search, DuckDuckGo). Routing prefers the
+ * Webz.io, Serper, Exa, Gemini Google Search, DuckDuckGo). Routing prefers the
  * recommended provider for the active model when a key is present.
  */
 export class WebSearchTool extends BaseDeclarativeTool<

@@ -10,12 +10,14 @@ import { exaBackend } from './backends/exa.js';
 import { geminiBackend } from './backends/gemini.js';
 import { serperBackend } from './backends/serper.js';
 import { tavilyBackend } from './backends/tavily.js';
+import { webzBackend } from './backends/webz.js';
 import type { WebSearchBackend } from './types.js';
 
 /** All built-in web search backends (wizard + router). */
 export const WEB_SEARCH_BACKENDS: readonly WebSearchBackend[] = [
   braveBackend,
   tavilyBackend,
+  webzBackend,
   serperBackend,
   exaBackend,
   geminiBackend,

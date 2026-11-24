@@ -22,6 +22,7 @@ const DEFAULT_HTTP_ORDER = [
   'brave',
   'tavily',
   'serper',
+  'webz',
   'duckduckgo',
 ] as const;
 

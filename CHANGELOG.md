@@ -10,6 +10,10 @@
 
 ## Unreleased
 
+- feat(websearch): add Webz.io News Search (`webz`) beside Tavily. It calls
+  `POST https://api.webz.io/api/news/context` with `WEBZ_API_TOKEN` and searches
+  the last 30 days of news. Force it with `WEB_SEARCH_PROVIDER=webz`.
+
 ## v4.2.0 (2026-08-02) — Keyless Exa web search (opencode-style)
 
 - feat(websearch): Exa now runs through its hosted MCP endpoint
