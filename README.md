@@ -90,16 +90,18 @@ need all of them). No-key fallback chain: **Exa** (hosted MCP, no key) →
 | Open-source / free | **Exa** (no key required)           |
 | Local              | DuckDuckGo (no key)                 |
 
-Also: Brave, Tavily, Serper. Force with `WEB_SEARCH_PROVIDER=exa` (or `brave` /
-`tavily` / `serper` / `gemini` / `duckduckgo`).
+Also: Brave, Tavily, Serper, Webz.io News Search. Force with
+`WEB_SEARCH_PROVIDER=exa` (or `brave` / `tavily` / `serper` / `webz` / `gemini`
+/ `duckduckgo`).
 
-| Backend | Env                  | Signup                                          |
-| ------- | -------------------- | ----------------------------------------------- |
-| Exa     | `EXA_API_KEY` (opt.) | [keys](https://dashboard.exa.ai/api-keys)       |
-| Brave   | `BRAVE_API_KEY`      | [keys](https://api.search.brave.com/app/keys)   |
-| Tavily  | `TAVILY_API_KEY`     | [app](https://app.tavily.com/home)              |
-| Serper  | `SERPER_API_KEY`     | [key](https://serper.dev/api-key)               |
-| Gemini  | `GEMINI_API_KEY`     | [AI Studio](https://aistudio.google.com/apikey) |
+| Backend | Env                  | Signup                                                 |
+| ------- | -------------------- | ------------------------------------------------------ |
+| Exa     | `EXA_API_KEY` (opt.) | [keys](https://dashboard.exa.ai/api-keys)              |
+| Brave   | `BRAVE_API_KEY`      | [keys](https://api.search.brave.com/app/keys)          |
+| Tavily  | `TAVILY_API_KEY`     | [app](https://app.tavily.com/home)                     |
+| Serper  | `SERPER_API_KEY`     | [key](https://serper.dev/api-key)                      |
+| Webz.io | `WEBZ_API_TOKEN`     | [docs](https://docs.webz.io/docs/webz/news-search-api) |
+| Gemini  | `GEMINI_API_KEY`     | [AI Studio](https://aistudio.google.com/apikey)        |
 
 ```text
 /websearch              # wizard (★ = recommended for current model)

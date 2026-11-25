@@ -16,6 +16,7 @@
 import { describe, expect, it } from 'vitest';
 import { braveBackend } from './backends/brave.js';
 import { tavilyBackend } from './backends/tavily.js';
+import { webzBackend } from './backends/webz.js';
 import { serperBackend } from './backends/serper.js';
 import { exaBackend } from './backends/exa.js';
 import { duckduckgoBackend } from './backends/duckduckgo.js';
@@ -59,6 +60,16 @@ describe('live web search (env keys)', () => {
     async () => {
       const r = await tavilyBackend.search(QUERY, { env: process.env });
       expect(r.summary.length).toBeGreaterThan(10);
+    },
+    30000,
+  );
+
+  it.skipIf(!has('WEBZ_API_TOKEN'))(
+    'webz live',
+    async () => {
+      const r = await webzBackend.search(QUERY, { env: process.env });
+      expect(r.hits.length).toBeGreaterThan(0);
+      expect(r.hits[0].url).toMatch(/^https?:\/\//);
     },
     30000,
   );

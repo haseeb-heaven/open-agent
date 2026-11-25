@@ -71,6 +71,22 @@ describe('planWebSearchRoute', () => {
     expect(plan.providerId).toBe('tavily');
   });
 
+  it('uses webz only when preferred and WEBZ_API_TOKEN is set', () => {
+    const selected = planWebSearchRoute({
+      modelId: 'openrouter-free',
+      env: { WEBZ_API_TOKEN: 'tok' },
+      preferredProviderId: 'webz',
+    });
+    expect(selected.providerId).toBe('webz');
+
+    const missing = planWebSearchRoute({
+      modelId: 'openrouter-free',
+      env: {},
+      preferredProviderId: 'webz',
+    });
+    expect(missing.providerId).not.toBe('webz');
+  });
+
   it('marks recommended row for current model', () => {
     const ranked = rankWebSearchProviders({
       modelId: 'gemini-2.5-flash',
